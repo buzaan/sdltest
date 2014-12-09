@@ -8,6 +8,13 @@ struct game
     SDL_Window *window;
     SDL_Renderer *renderer;
     struct scene *scene;
+    struct scene_list
+    {
+	struct scene *scene;
+	struct scene_list *next;
+    } *scenes;
+    Uint32 last_tick;
+    bool quitting;
 };
 
 struct game *game_create(char *title, int x_size, int y_size)
@@ -38,6 +45,9 @@ struct game *game_create(char *title, int x_size, int y_size)
     }
 
     game->scene = NULL;
+    game->last_tick = SDL_GetTicks();
+    game->quitting = false;
+    game->scenes = NULL;
     return game;
 }
 
@@ -47,9 +57,12 @@ void game_destroy(struct game *game)
     {
 	SDL_DestroyRenderer(game->renderer);
 	SDL_DestroyWindow(game->window);
-	if(game->scene)
+	while(game->scenes)
 	{
-	    scene_destroy(game->scene);
+	    struct scene_list *temp = game->scenes;
+	    scene_destroy(game->scenes->scene);
+	    game->scenes = game->scenes->next;
+	    free(temp);
 	}
 	free(game);
     }
@@ -57,20 +70,85 @@ void game_destroy(struct game *game)
 
 bool game_should_quit(struct game *game)
 {
-    return true;
+    return game && game->quitting;
+}
+
+static Uint64 update_timer(struct game *game)
+{
+    Uint32 cur_tick = SDL_GetTicks();
+    Uint32 dt = cur_tick - game->last_tick;
+    game->last_tick = cur_tick;
+    return dt;
 }
 
 void game_tick(struct game *game)
 {
-    if(!game) return;
-
-    if(scene)
+    //TODO: move somewhere appropriate
+    SDL_Event event;
+    while(SDL_PollEvent(&event))
     {
-	scene->update(0);
-	scene->draw(game->renderer);
+	switch(event.type)
+	{
+	case SDL_QUIT:
+	case SDL_KEYDOWN:
+	    game->quitting = true;
+	    break;
+	default:
+	    break;
+	}
+    }
+
+    if(game->scene)
+    {
+	Uint32 dt = update_timer(game);
+	scene_update(game->scene, dt);
+	scene_draw(game->scene, game->renderer);
+	SDL_Delay(dt < 1000 / 30 ? 1000 / 30 - dt : 0);
     }
 }		 
 
+void game_set_scene(struct game *g, struct scene *s)
+{
+    g->scene = s;
+}
+
+struct scene *game_add_scene(struct game *game, SceneInit init, SceneUpdate update, SceneDraw draw)
+{
+    struct scene *new_scene = scene_create(init, update, draw);
+    struct scene_list *node = malloc(sizeof(struct scene_list));
+    if(!game->scenes)
+    {
+	node->scene = new_scene;
+	node->next = NULL;
+	game->scenes = node;
+    }
+    else
+    {
+	node->scene = new_scene;
+	node->next = game->scenes;
+	game->scenes = node;
+    }
+    return new_scene;
+}
+
+void game_switch_to_scene(struct game *game, struct scene *scene)
+{
+    if(!game || !scene) return;
+    
+    struct scene_list *cur = game->scenes;
+    while(cur)
+    {
+	if(cur->scene == scene)
+	{
+	    game->scene = cur->scene;
+	    return;
+	}
+	else
+	{
+	    cur = cur->next;
+	}
+    }
+}
 
 /*
 SDL_Texture *load_bmp(SDL_Renderer *renderer, const_cstr path)

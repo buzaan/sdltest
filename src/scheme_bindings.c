@@ -3,6 +3,12 @@
 #include <stdlib.h>
 #include "scheme_bindings.h"
 
+/* To run a function from main.scm...
+    scm_c_primitive_load("src/main.scm");
+    SCM func = scm_variable_ref(scm_c_lookup("main"));
+    scm_call_0(func);
+*/
+
 void *init_scheme(void *data)
 {
     scm_c_define_gsubr("sdl-log", 1, 0, 0, sdl_log);
