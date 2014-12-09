@@ -1,7 +1,8 @@
 #pragma once
-#include "scene.h"
+#include <SDL2/SDL.h>
+#include "sdltest.h"
 
-void test_scene_init(void *data);
-void test_scene_update(int dt);
-void test_scene_draw(SDL_Renderer *renderer);
-void test_scene_destroy();
+void test_scene_start(Scene *s);
+void test_scene_update(Scene *s, int dt);
+void test_scene_draw(Scene *s, SDL_Renderer *renderer);
+void test_scene_stop(Scene *s);
