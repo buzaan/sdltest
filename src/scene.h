@@ -3,7 +3,7 @@
 #include "sdltest.h"
 
 typedef void (*SceneStart)(Scene *s);
-typedef void (*SceneUpdate)(Scene *s, int dt);
+typedef void (*SceneUpdate)(Scene *s, int dt, const InputState *input);
 typedef void (*SceneDraw)(Scene *s, SDL_Renderer *renderer);
 typedef void (*SceneStop)(Scene *s);
 
@@ -20,7 +20,7 @@ void *scene_get_data(Scene *s);
 Game *scene_get_game(Scene *s);
 
 void scene_start(Scene *s);
-void scene_update(Scene *s, int dt);
+void scene_update(Scene *s, int dt, const InputState *input);
 void scene_draw(Scene *s, SDL_Renderer *renderer);
 void scene_stop(Scene *s);
 

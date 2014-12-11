@@ -77,10 +77,10 @@ static Uint64 update_timer(Game *game)
 void game_tick(Game *game)
 {
     InputState state = { 
-             .up = false, .down = false, 
-	    .left = false, .right = false,
-	    .cursor = {.x = 0, .y = 0, .active = false},
-	    .quit = false};
+	.up = false, .down = false, 
+	.left = false, .right = false,
+	.cursor = {.x = 0, .y = 0, .active = false},
+	.quit = false};
 
     input_update(&state, NULL);
     if(state.quit)
@@ -92,7 +92,7 @@ void game_tick(Game *game)
     if(game->scene)
     {
 	Uint32 dt = update_timer(game);
-	scene_update(game->scene, dt);
+	scene_update(game->scene, dt, &state);
 	scene_draw(game->scene, game->renderer);
 
 	// Probably wrong.

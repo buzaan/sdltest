@@ -19,7 +19,10 @@ $(BUILD_DIR)/input.o:$(SRC_DIR)/input.h $(SRC_DIR)/sdltest.h
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) -c $(CFLAGS) -o $@ $< 
 
-sdltest: $(OBJ)
+$(BUILD_DIR):
+	mkdir $@
+
+sdltest: $(BUILD_DIR) $(OBJ)
 	$(CC) $(LDFLAGS) $(LDLIBS) $(OBJ) -o sdltest
 
 clean:

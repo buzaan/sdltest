@@ -5,7 +5,7 @@
 struct scene_s
 {
     void (*start)(struct scene_s *s);
-    void (*update)(struct scene_s *s, int dt);
+    void (*update)(struct scene_s *s, int dt, const InputState *input);
     void (*draw)(struct scene_s *s, SDL_Renderer *renderer);
     void (*stop)(struct scene_s *s);
     void *data;
@@ -14,7 +14,7 @@ struct scene_s
 
 // Do-nothing stubs
 static void default_start(Scene *s) {}
-static void default_update(Scene *s, int dt) {}
+static void default_update(Scene *s, int dt, const InputState *input) {}
 static void default_draw(Scene *s, SDL_Renderer *r) {}
 static void default_stop(Scene *s) {}
 
@@ -75,9 +75,9 @@ void scene_start(Scene *s)
     s->start(s);
 }
 
-void scene_update(Scene *s, int dt)
+void scene_update(Scene *s, int dt, const InputState *state)
 {
-    s->update(s, dt);
+    s->update(s, dt, state);
 }
 
 void scene_draw(Scene *s, SDL_Renderer *renderer)
