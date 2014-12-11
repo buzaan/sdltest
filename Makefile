@@ -4,20 +4,16 @@ LDLIBS=-framework SDL2
 
 BUILD_DIR=build
 SRC_DIR=src
-OBJ=$(BUILD_DIR)/main.o $(BUILD_DIR)/scene.o $(BUILD_DIR)/game.o $(BUILD_DIR)/menu_scene.o $(BUILD_DIR)/graphics.o $(BUILD_DIR)/input.o
-
+OBJ=$(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(wildcard $(SRC_DIR)/*c))
+DEPFILES=$(patsubst $(BUILD_DIR)/%.o,$(BUILD_DIR)/%.d,$(OBJ))
 
 all: sdltest
 
-$(BUILD_DIR)/main.o:$(SRC_DIR)/sdltest.h $(SRC_DIR)/game.h $(SRC_DIR)/scene.h $(SRC_DIR)/menu_scene.h
-$(BUILD_DIR)/scene.o:$(SRC_DIR)/sdltest.h
-$(BUILD_DIR)/game.o:$(SRC_DIR)/sdltest.h $(SRC_DIR)/scene.h $(SRC_DIR)/game.h
-$(BUILD_DIR)/menu_scene.o:$(SRC_DIR)/sdltest.h $(SRC_DIR)/scene.h $(SRC_DIR)/menu_scene.h
-$(BUILD_DIR)/graphics.o:$(SRC_DIR)/graphics.h
-$(BUILD_DIR)/input.o:$(SRC_DIR)/input.h $(SRC_DIR)/sdltest.h
-
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) -c $(CFLAGS) -o $@ $< 
+
+$(BUILD_DIR)/%.d: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS) -MQ $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$<) -MM $< -o $@
 
 $(BUILD_DIR):
 	mkdir $@
@@ -25,5 +21,9 @@ $(BUILD_DIR):
 sdltest: $(BUILD_DIR) $(OBJ)
 	$(CC) $(LDFLAGS) $(LDLIBS) $(OBJ) -o sdltest
 
+.PHONY: clean
 clean:
 	rm $(BUILD_DIR)/*o
+	rm $(BUILD_DIR)/*d
+
+-include $(DEPFILES)
