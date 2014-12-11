@@ -8,3 +8,4 @@ bool game_should_quit(Game *game);
 void game_tick(Game *game);
 void game_add_scene(Game *game, Scene *scene);
 void game_switch_to_scene(Game *game, Scene *scene);
+SDL_Renderer *game_get_renderer(Game *game);

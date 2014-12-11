@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
 #include "sdltest.h"
+#include "input.h"
 #include "scene.h"
 #include "game.h"
 
@@ -75,21 +76,18 @@ static Uint64 update_timer(Game *game)
 
 void game_tick(Game *game)
 {
-    //TODO: move somewhere appropriate
-    SDL_Event event;
-    while(SDL_PollEvent(&event))
+    InputState state = { 
+             .up = false, .down = false, 
+	    .left = false, .right = false,
+	    .cursor = {.x = 0, .y = 0, .active = false},
+	    .quit = false};
+
+    input_update(&state, NULL);
+    if(state.quit)
     {
-	switch(event.type)
-	{
-	case SDL_QUIT:
-	case SDL_KEYDOWN:
-	    game->quitting = true;
-	    break;
-	default:
-	    break;
-	}
+	game->quitting = true;
+	return;
     }
-    // -- 
 
     if(game->scene)
     {
@@ -97,6 +95,7 @@ void game_tick(Game *game)
 	scene_update(game->scene, dt);
 	scene_draw(game->scene, game->renderer);
 
+	// Probably wrong.
 	SDL_Delay(dt < 1000 / 30 ? 1000 / 30 - dt : 0);
     }
 }		 
@@ -117,21 +116,7 @@ void game_switch_to_scene(Game *game, Scene *scene)
     scene_start(scene);
 }
 
-/*
-SDL_Texture *load_bmp(SDL_Renderer *renderer, const_cstr path)
+SDL_Renderer *game_get_renderer(Game *game)
 {
-    if(!renderer || !path) return NULL;
-
-    SDL_Surface *tmp = SDL_LoadBMP(path);
-    if(tmp)
-    {
-	SDL_Texture *out = SDL_CreateTextureFromSurface(renderer, tmp);
-	SDL_FreeSurface(tmp);
-	return out;
-    }
-    else
-    {
-	return NULL;
-    }
+    return game->renderer;
 }
-*/
