@@ -44,7 +44,10 @@ void input_update(InputState *state, InputKeymap *map)
 	    case SDLK_DOWN: state->down = true; break;
 	    case SDLK_LEFT: state->left = true; break;
 	    case SDLK_RIGHT: state->right = true; break;
-	    case SDLK_RETURN: state->select = true; break;
+	    case SDLK_SPACE:
+	    case SDLK_RETURN: 
+		state->select = true;
+		break;
 	    default: 
 		break;
 	    }

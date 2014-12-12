@@ -24,3 +24,10 @@ struct InputKeymap
     // not yet supported
 };
 typedef struct InputKeymap InputKeymap;
+
+enum SceneID
+{
+    SCENE_MENU,
+    SCENE_GAMEPLAY,
+};
+typedef enum SceneID SceneID;

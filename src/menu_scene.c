@@ -1,39 +1,9 @@
-#include <stdio.h>
 #include <SDL2/SDL.h>
 #include "game.h"
 #include "graphics.h"
 #include "menu_scene.h"
 #include "scene.h"
 
-/* TODO
-struct Menu
-{
-    int choices;
-    int x;
-    int y;
-    int selection;
-    int item_width;
-    int item_height;
-    int offset;
-    // void (*actions[5])(); ??
-};
-typedef struct Menu Menu;
-
-Menu *menu_create(unsigned int x, unsigned int y, unsigned int iwidth, unsigned int iheight, unsigned int offset)
-{
-    Menu *out = malloc(sizeof(Menu));
-    out->choice = 0;
-    out->x = x;
-    out->y = y;
-    out->selection = 0;
-    out->item_width = iwidth;
-    out->item_height = iheight;
-    out->offset = offset;
-    return out;
-}
-
-void menu_add_item(Menu *menu, 
-*/
 struct MenuScene
 {
     SDL_Texture *background;
@@ -52,21 +22,10 @@ void menu_scene_start(Scene *scene)
 
 void menu_scene_update(Scene *scene, int dt, const InputState *input)
 {
-    if(input->up && input->down)
+    if(input->select)
     {
-	// Cancel up & down. Ignore
-    }
-    else if(input->up)
-    {
-	//menu_move_up()
-    }
-    else if(input->down)
-    {
-	//menu_move_down()
-    }
-    else if(input->select)
-    {
-	//menu_do_selection()
+	Game *game = scene_get_game(scene);
+	game_switch_to_scene(game, SCENE_GAMEPLAY);
     }
 }
 
