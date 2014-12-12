@@ -2,7 +2,9 @@
 #include <stdbool.h>
 
 typedef struct game_s Game;
+
 typedef struct scene_s Scene;
+
 struct InputState
 {
     bool up;
@@ -19,11 +21,13 @@ struct InputState
     bool quit;
 };
 typedef struct InputState InputState;
+
 struct InputKeymap
 {
     // not yet supported
 };
 typedef struct InputKeymap InputKeymap;
+
 
 enum SceneID
 {
@@ -31,3 +35,15 @@ enum SceneID
     SCENE_GAMEPLAY,
 };
 typedef enum SceneID SceneID;
+
+typedef struct TileMap TileMap;
+
+typedef struct TileSet TileSet;
+
+struct Tile
+{
+    int x;
+    int y;
+    bool passable;
+};
+typedef struct Tile Tile;

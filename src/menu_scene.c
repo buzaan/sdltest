@@ -33,7 +33,6 @@ void menu_scene_draw(Scene *scene, SDL_Renderer *r)
 {
     MenuScene *data = scene_get_data(scene);
     SDL_RenderCopy(r, data->background, NULL,NULL);
-    SDL_RenderPresent(r);
 }
 
 void menu_scene_stop(Scene *scene)

@@ -9,6 +9,7 @@
 struct Data
 {
     SDL_Texture *tiles;
+    TileMap *map;
 };
 typedef struct Data Data;
 
@@ -24,6 +25,7 @@ void gameplay_scene_update(Scene *s, int dt, const InputState *input)
 
 void gameplay_scene_draw(Scene *s, SDL_Renderer *renderer)
 {
+    SDL_RenderClear(renderer);
 }
 
 void gameplay_scene_stop(Scene *s)

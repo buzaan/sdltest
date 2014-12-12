@@ -112,6 +112,8 @@ void game_tick(Game *game)
 	scene_update(game->scene, dt, &state);
 	scene_draw(game->scene, game->renderer);
 
+	SDL_RenderPresent(game->renderer);
+
 	// Probably wrong.
 	SDL_Delay(dt < 1000 / 30 ? 1000 / 30 - dt : 0);
     }
