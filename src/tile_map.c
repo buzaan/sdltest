@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include "tile_map.h"
-#include "map_parser.h"
+#include "map_loader.h"
 
 struct dim
 {
@@ -29,7 +29,8 @@ TileMap *tile_map_init_from_file(TileMap *map, const char *file)
 	FILE *f = fopen(file, "r");
 	if(f)
 	{
-	    
+	    load_map(f, map); //TODO: use return val...
+	    fclose(f);
 	}
     }
     return map;
@@ -43,6 +44,7 @@ void tile_map_set_tile(TileMap *map, int x, int y, Tile *tile)
     }
 }
 
+/* TODO once you decide on the tile & tileset representation
 void tile_map_draw(TileMap *map, SDL_Renderer *r)
 {
     if(!map) return;
@@ -54,6 +56,7 @@ void tile_map_draw(TileMap *map, SDL_Renderer *r)
 	{
 	    Tile *tile = tile_map_get_tile(map, x, y);
 	    if(!tile) break;
+
 	    src.x = tile->x;
 	    src.y = tile->y;
 	    src.w = map->bounds.w;
@@ -67,6 +70,7 @@ void tile_map_draw(TileMap *map, SDL_Renderer *r)
 	}
     }
 }
+*/
 
 Tile *tile_map_get_tile(TileMap *map, int x, int y)
 {

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "map_loader.h"
 
 enum Symbol
 {
@@ -18,7 +19,7 @@ enum Symbol
 };
 typedef enum Symbol Symbol;
 
-const char *sym_to_str(Symbol s)
+static const char *sym_to_str(Symbol s)
 {
     static const char *names[] = {
 	"string",
@@ -35,10 +36,12 @@ const char *sym_to_str(Symbol s)
 static const int TOKEN_MAX = 32;
 struct Parser
 {
-    Symbol expected;
     Symbol sym;
     char token[TOKEN_MAX];
     FILE *stream;
+
+    //Debugging info
+    Symbol expected;
     jmp_buf error;
     int lines;
 };
@@ -270,7 +273,7 @@ static bool parse(FILE *stream)
 		sym_to_str(p.sym));
 	if(p.sym == str && p.expected == p.sym)
 	{
-	    fputs(stderr, "String format error.\n");
+	    fputs("String format error.\n", stderr);
 	}
 	return false;
     }
