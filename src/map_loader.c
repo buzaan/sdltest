@@ -160,7 +160,7 @@ void header(Parser *p)
 }
 
 // tilesets := 'tileset=' '=' str ',' num ',' num ',' num ',' num '\n'
-void tilesets(Parser *p)
+static void tilesets(Parser *p)
 {
     if(accept_str(p, "tileset"))
     {
@@ -178,7 +178,7 @@ void tilesets(Parser *p)
 }
 
 // data := {{num ','} '\n'}
-void data(Parser *p)
+static void data(Parser *p)
 {
     do
     {
@@ -189,7 +189,7 @@ void data(Parser *p)
     }while(accept(p, nl) && p->sym != nl);    
 }
 
-void layer(Parser *p)
+static void layer(Parser *p)
 {
     if(accept_str(p, "type"))
     {
@@ -203,7 +203,7 @@ void layer(Parser *p)
     }
 }
 
-void section_header(Parser *p, char *name)
+static void section_header(Parser *p, char *name)
 {
     if(accept(p, lbracket))
     {
@@ -216,7 +216,7 @@ void section_header(Parser *p, char *name)
     }
 }
 
-void section(Parser *p)
+static void section(Parser *p)
 {
     char section[TOKEN_MAX];
     section_header(p, section);
@@ -244,7 +244,7 @@ void section(Parser *p)
     }
 }
 
-void config(Parser *p)
+static void config(Parser *p)
 {
     do
     {
@@ -253,7 +253,7 @@ void config(Parser *p)
     expect(p, eof);
 }
 
-bool parse(FILE *stream)
+static bool parse(FILE *stream)
 {
     Parser p = {.stream = stream };
     if(setjmp(p.error) != PARSE_ERROR)
