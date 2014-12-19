@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "tile_map.h"
+#include "map_parser.h"
 
 struct dim
 {
@@ -12,23 +13,26 @@ struct TileMap
     struct dim bounds; // in tiles
     struct dim tiles; // in pixels
     Tile *data; 
-    SDL_Texture *texture;
+    SDL_Texture *sprites;
 };
 
-TileMap *tile_map_create(int width, int height, int tile_width, int tile_height)
+TileMap *tile_map_alloc()
 {    
     TileMap *out = malloc(sizeof(TileMap));
-    out->bounds.w = width;
-    out->bounds.h = height;
-    out->tiles.w = tile_width;
-    out->tiles.h = tile_height;
-    out->data = malloc(sizeof(Tile) * width * height);
-    out->texture = NULL;
     return out;
 }
 
-void tile_map_load(TileMap *map, const char *file)
+TileMap *tile_map_init_from_file(TileMap *map, const char *file)
 {
+    if(map)
+    {
+	FILE *f = fopen(file, "r");
+	if(f)
+	{
+	    
+	}
+    }
+    return map;
 }
 
 void tile_map_set_tile(TileMap *map, int x, int y, Tile *tile)

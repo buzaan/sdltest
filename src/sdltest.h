@@ -42,8 +42,7 @@ typedef struct TileSet TileSet;
 
 struct Tile
 {
-    int x;
-    int y;
+    int tile_num;
     bool passable;
 };
 typedef struct Tile Tile;
