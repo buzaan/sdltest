@@ -6,10 +6,15 @@
 #include "scene.h"
 #include "menu_scene.h"
 
+// Mostly arbitrary dimensions. 
+// TODO: make configurable
+const int WINDOW_WIDTH = 800;
+const int WINDOW_HEIGHT = 600;
+
 int main(int argc, char *argv[])
 {
     int status = 0;
-    Game *game = game_create("SDL Test", 800, 600);
+    Game *game = game_create("SDL Test", WINDOW_WIDTH, WINDOW_HEIGHT);
     if(game != NULL)
     {
 	Scene *menu = scene_create(game);

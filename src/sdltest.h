@@ -2,7 +2,6 @@
 #include <stdbool.h>
 
 typedef struct game_s Game;
-
 typedef struct scene_s Scene;
 
 struct InputState
@@ -37,12 +36,8 @@ enum SceneID
 typedef enum SceneID SceneID;
 
 typedef struct TileMap TileMap;
-
 typedef struct TileSet TileSet;
+typedef struct TileInfo TileInfo;
 
-struct Tile
-{
-    int tile_num;
-    bool passable;
-};
-typedef struct Tile Tile;
+extern const int WINDOW_WIDTH;
+extern const int WINDOW_HEIGHT;
