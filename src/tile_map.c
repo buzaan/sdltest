@@ -117,7 +117,7 @@ void tile_map_gen_map(TileMap *map, TileMapCAParams *params)
     memcpy(buf, map->data, map->data_size);
     for(int i = 0; i < params->generations; i++)
     {
-	ca_generation(map, buf, params);
+        ca_generation(map, buf, params);
     }
     free(buf);
 }
@@ -126,9 +126,9 @@ void tile_map_destroy(TileMap *map)
 {
     if(map)
     {
-	free(map->data);
-	SDL_DestroyTexture(map->sprites);
-	free(map);
+        free(map->data);
+        SDL_DestroyTexture(map->sprites);
+        free(map);
    }
 }
 
@@ -136,7 +136,7 @@ int tile_map_get_tile(TileMap *map, int x, int y)
 {
     if(map && bounds(0, x, map->tiles.w) && bounds(0, y, map->tiles.h))
     {
-	return map->data[y * map->tiles.w + x];
+        return map->data[y * map->tiles.w + x];
     }
     fprintf(stderr, "Bad tile %d %d\n", x, y);
     return -1;
@@ -146,7 +146,7 @@ void tile_map_set_tile(TileMap *map, int x, int y, int tile_index)
 {
     if(map && bounds(0, x, map->tiles.w) && bounds(0, y, map->tiles.h))
     {
-	map->data[y * map->tiles.w + x] = tile_index;
+        map->data[y * map->tiles.w + x] = tile_index;
     }
 }
 
@@ -157,18 +157,18 @@ void tile_map_draw(TileMap *map, SDL_Renderer *r)
     SDL_Rect dst = {.w = TILE_WIDTH, .h = TILE_HEIGHT};
     for(int x = 0; x < map->tiles.w; x++)
     {
-	for(int y = 0; y < map->tiles.h; y++)
-	{
-	    int tileidx = map->data[x + y * map->tiles.w];
-	    if(!(0 <= tileidx && tileidx < 2)) 
-	    {
-		fprintf(stderr, "%d\n", tileidx);
-	    }
-	    assert(0 <= tileidx && tileidx < 2);
-	    struct TileInfo *info = &map->info[tileidx];
-	    dst.x = x * TILE_WIDTH;
-	    dst.y = y * TILE_WIDTH;
-	    SDL_RenderCopy(r, map->sprites, &info->rect, &dst);
-	}
+        for(int y = 0; y < map->tiles.h; y++)
+        {
+            int tileidx = map->data[x + y * map->tiles.w];
+            if(!(0 <= tileidx && tileidx < 2))
+            {
+                fprintf(stderr, "%d\n", tileidx);
+            }
+            assert(0 <= tileidx && tileidx < 2);
+            struct TileInfo *info = &map->info[tileidx];
+            dst.x = x * TILE_WIDTH;
+            dst.y = y * TILE_WIDTH;
+            SDL_RenderCopy(r, map->sprites, &info->rect, &dst);
+        }
     }
 }

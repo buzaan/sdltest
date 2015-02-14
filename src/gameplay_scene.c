@@ -19,13 +19,13 @@ static int cell_rule(TileMap *map, int x, int y)
     int neighbors = 0;
     for(int cx = x - 1; cx < x + 1; cx++)
     {
-	for(int cy = y - 1; cy < y + 1; cy++)
-	{
-	    if(!(cx == x && cy == y) && tile_map_get_tile(map, cx, cy) == 1)
-	    {
-		neighbors++;
-	    }
-	}
+        for(int cy = y - 1; cy < y + 1; cy++)
+        {
+            if(!(cx == x && cy == y) && tile_map_get_tile(map, cx, cy) == 1)
+            {
+                neighbors++;
+            }
+        }
     }
 
     return neighbors >= 3 ? 1 : 0;
