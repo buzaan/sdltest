@@ -21,7 +21,8 @@ static int cell_rule(TileMap *map, int x, int y)
     {
         for(int cy = y - 1; cy < y + 1; cy++)
         {
-            if(!(cx == x && cy == y) && tile_map_get_tile(map, cx, cy) == 1)
+            if(!(cx == x && cy == y) && 
+               tile_map_get_tile(map, cx, cy) != TT_EMPTY)
             {
                 neighbors++;
             }
