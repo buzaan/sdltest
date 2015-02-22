@@ -2,6 +2,21 @@
 #include <SDL2/SDL.h>
 #include "sdltest.h"
 
+enum TileType
+{
+    TT_EMPTY,
+    TT_STONE,
+    TT_WALL,
+    TT_NUM_TYPES,
+};
+
+struct TileInfo
+{
+    enum TileType type;
+    int hit_points;
+};
+typedef struct TileInfo TileInfo;
+
 struct TileMapCAParams
 {
     void (*rule)(TileMap *map, int x, int y, TileInfo *result);

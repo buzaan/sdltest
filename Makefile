@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-Wall -Werror -std=c99 -fstrict-aliasing -mmacosx-version-min=10.6
+CFLAGS+=-Wall -Werror -std=c99 -fstrict-aliasing -mmacosx-version-min=10.6
 LDLIBS=-framework SDL2
 
 BUILD_DIR=build
