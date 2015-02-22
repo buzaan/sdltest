@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL2/SDL.h>
@@ -13,7 +14,7 @@ struct Data
 };
 typedef struct Data Data;
 
-static int cell_rule(TileMap *map, int x, int y)
+static void cell_rule(TileMap *map, int x, int y, TileInfo *tile)
 {
     // loops over 3x3 grid surrounding <x,y> cell, excluding cell itself
     int neighbors = 0;
@@ -21,15 +22,18 @@ static int cell_rule(TileMap *map, int x, int y)
     {
         for(int cy = y - 1; cy < y + 1; cy++)
         {
-            if(!(cx == x && cy == y) && 
-               tile_map_get_tile(map, cx, cy) != TT_EMPTY)
+            if(!(cx == x && cy == y))
             {
-                neighbors++;
+                TileInfo *tile = tile_map_get_tile(map, cx, cy);
+                assert(tile);
+                if(tile->type != TT_EMPTY)
+                {
+                    neighbors++;
+                }
             }
         }
     }
-
-    return neighbors >= 3 ? 1 : 0;
+    tile->type = neighbors >= 3 ? TT_STONE : TT_EMPTY;
 }
 
 void gameplay_scene_start(Scene *s)
@@ -41,7 +45,7 @@ void gameplay_scene_start(Scene *s)
     
     TileMapCAParams params;
     params.rule = cell_rule;
-    params.generations = 3;
+    params.generations = 2;
     params.seed_ratio = 0.2;
     tile_map_gen_map(data->map, &params);
 }

@@ -2,19 +2,9 @@
 #include <SDL2/SDL.h>
 #include "sdltest.h"
 
-struct TileInfo;
-
-enum TileType
-{
-    TT_EMPTY,
-    TT_STONE,
-    TT_WALL,
-    TT_NUM_TYPES,
-};
-
 struct TileMapCAParams
 {
-    int (*rule)(TileMap *map, int x, int y);
+    void (*rule)(TileMap *map, int x, int y, TileInfo *result);
     float seed_ratio;
     unsigned int generations;
 };

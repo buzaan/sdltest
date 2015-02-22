@@ -37,6 +37,20 @@ typedef enum SceneID SceneID;
 
 typedef struct TileMap TileMap;
 typedef struct TileSet TileSet;
+
+enum TileType
+{
+    TT_EMPTY,
+    TT_STONE,
+    TT_WALL,
+    TT_NUM_TYPES,
+};
+
+struct TileInfo
+{
+    enum TileType type;
+    int hit_points;
+};
 typedef struct TileInfo TileInfo;
 
 extern const int WINDOW_WIDTH;

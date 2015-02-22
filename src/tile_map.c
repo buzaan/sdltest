@@ -16,12 +16,6 @@ struct dim
     int h;
 };
 
-struct TileInfo
-{
-    enum TileType type;
-    int hit_points;
-};
-
 struct TileMap
 {
     struct dim bounds; // in pixels
@@ -86,7 +80,7 @@ static void seed_map(TileMap *map, TileMapCAParams *params)
     }
 }
 
-static void ca_generation(TileMap *map, int *buf, TileMapCAParams *params)
+static void ca_generation(TileMap *map, TileInfo *buf, TileMapCAParams *params)
 {
     if(!params->rule) return;
 
@@ -94,7 +88,8 @@ static void ca_generation(TileMap *map, int *buf, TileMapCAParams *params)
     {
         for(int y = 1; y < map->tiles.h - 1; y++)
         {
-            buf[x + y * map->tiles.w] = params->rule(map, x, y);
+            TileInfo *tile = &buf[x + y * map->tiles.w];
+            params->rule(map, x, y, tile);
         }
     }
     memcpy(map->data, buf, map->data_size);
@@ -112,7 +107,7 @@ void tile_map_gen_map(TileMap *map, TileMapCAParams *params)
     if(!map || !params) return;
     seed_map(map, params);
 
-    int *buf = malloc(map->data_size);
+    TileInfo *buf = malloc(map->data_size);
     memcpy(buf, map->data, map->data_size);
     for(int i = 0; i < params->generations; i++)
     {
@@ -149,26 +144,35 @@ void tile_map_set_tile(TileMap *map, int x, int y, TileInfo *tile)
     }
 }
 
-static void tile_to_sprite_pos(const TileInfo *tile, SDL_Rect *rect)
+/** Fills SDL_Rect `out` with x,y positions in sprite sheet */
+static void ss_pos(SDL_Rect *out, int x, int y)
 {
-    static struct
-    {
-        int x;
-        int y;
-    } table[TT_NUM_TYPES];
+    assert(out);
+    out->x = x * TILE_WIDTH;
+    out->y = y * TILE_HEIGHT;
+    out->w = TILE_WIDTH;
+    out->h = TILE_HEIGHT;
+}
+
+/* TODO: Will need to change later since a single tile type will need
+ * to have multiple glyphs (e.g. a wall with straight and corner
+ * sections. */
+static SDL_Rect *tile_rect(const TileInfo *tile)
+{
+    static SDL_Rect table[TT_NUM_TYPES];
     static bool init = false;
 
     if(!init)
     {
-        table[TT_EMPTY].x = 0;
-        table[TT_EMPTY].y = 0;
+        ss_pos(&table[TT_EMPTY], 0, 0);
+        ss_pos(&table[TT_STONE], 2, 11);
+        ss_pos(&table[TT_WALL],  0, 11);
         init = true;
     }
 
-    if(!tile || !rect || tile->type < TT_NUM_TYPES) return;
-    
-    rect->x = table[tile->type].x;
-    rect->y = table[tile->type].y;
+    assert(tile);
+    assert(tile->type < TT_NUM_TYPES);
+    return &table[tile->type];
 }
 
 void tile_map_draw(TileMap *map, SDL_Renderer *r)
@@ -176,7 +180,6 @@ void tile_map_draw(TileMap *map, SDL_Renderer *r)
     if(!map) return;
 
     SDL_Rect dst = {.w = TILE_WIDTH, .h = TILE_HEIGHT};
-    SDL_Rect src = {.w = TILE_WIDTH, .h = TILE_HEIGHT};
 
     for(int x = 0; x < map->tiles.w; x++)
     {
@@ -184,11 +187,10 @@ void tile_map_draw(TileMap *map, SDL_Renderer *r)
         {
             TileInfo *tile = tile_map_get_tile(map, x, y);
             assert(tile);
-            tile_to_sprite_pos(tile, &src);
             
             dst.x = x * TILE_WIDTH;
             dst.y = y * TILE_WIDTH;
-            SDL_RenderCopy(r, map->sprites, &src, &dst);
+            SDL_RenderCopy(r, map->sprites, tile_rect(tile), &dst);
         }
     }
 }
