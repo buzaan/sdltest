@@ -33,7 +33,7 @@ static void cell_rule(TileMap *map, int x, int y, TileInfo *tile)
             }
         }
     }
-    tile->type = neighbors >= 3 ? TT_STONE : TT_EMPTY;
+    tile_switch_type(tile, neighbors >= 3 ? TT_STONE : TT_EMPTY);
 }
 
 void gameplay_scene_start(Scene *s)
@@ -47,7 +47,7 @@ void gameplay_scene_start(Scene *s)
     params.rule = cell_rule;
     params.generations = 2;
     params.seed_ratio = 0.2;
-    tile_map_gen_map(data->map, &params);
+    tile_map_gen_map(data->map, &params);    
 }
 
 void gameplay_scene_update(Scene *s, int dt, const InputState *input)

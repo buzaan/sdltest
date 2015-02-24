@@ -6,9 +6,10 @@
 #include "game.h"
 #include "tile_map.h"
 
-static const int INFO_BAR_HEIGHT = 64; 
+static const int INFO_BAR_HEIGHT = 64; // UI info bar height in px
 static const int TILE_WIDTH = 16;
 static const int TILE_HEIGHT = 16;
+static const int FONT_SHEET_CELL_STRIDE = 16;
 
 struct dim
 {
@@ -73,7 +74,7 @@ static void seed_map(TileMap *map, TileMapCAParams *params)
         for(int y = 0; y < map->tiles.h; y++)
         {
             TileInfo tile;
-            tile.type = random() <= p ? TT_EMPTY : TT_STONE;
+            tile_switch_type(&tile, random() <= p ? TT_EMPTY : TT_STONE);
             tile.hit_points = 100;
             tile_map_set_tile(map, x, y, &tile);
         }
@@ -109,10 +110,12 @@ void tile_map_gen_map(TileMap *map, TileMapCAParams *params)
 
     TileInfo *buf = malloc(map->data_size);
     memcpy(buf, map->data, map->data_size);
+    
     for(int i = 0; i < params->generations; i++)
     {
         ca_generation(map, buf, params);
     }
+
     free(buf);
 }
 
@@ -144,35 +147,14 @@ void tile_map_set_tile(TileMap *map, int x, int y, TileInfo *tile)
     }
 }
 
-/** Fills SDL_Rect `out` with x,y positions in sprite sheet */
-static void ss_pos(SDL_Rect *out, int x, int y)
+static void tile_rect(const TileInfo *tile, SDL_Rect *out)
 {
-    assert(out);
-    out->x = x * TILE_WIDTH;
-    out->y = y * TILE_HEIGHT;
-    out->w = TILE_WIDTH;
-    out->h = TILE_HEIGHT;
-}
-
-/* TODO: Will need to change later since a single tile type will need
- * to have multiple glyphs (e.g. a wall with straight and corner
- * sections. */
-static SDL_Rect *tile_rect(const TileInfo *tile)
-{
-    static SDL_Rect table[TT_NUM_TYPES];
-    static bool init = false;
-
-    if(!init)
-    {
-        ss_pos(&table[TT_EMPTY], 0, 0);
-        ss_pos(&table[TT_STONE], 2, 11);
-        ss_pos(&table[TT_WALL],  0, 11);
-        init = true;
-    }
-
     assert(tile);
-    assert(tile->type < TT_NUM_TYPES);
-    return &table[tile->type];
+    assert(out);
+    int row = tile->glyph % FONT_SHEET_CELL_STRIDE;
+    int col = tile->glyph / FONT_SHEET_CELL_STRIDE;
+    out->x = row * TILE_WIDTH;
+    out->y = col * TILE_HEIGHT;
 }
 
 void tile_map_draw(TileMap *map, SDL_Renderer *r)
@@ -180,7 +162,7 @@ void tile_map_draw(TileMap *map, SDL_Renderer *r)
     if(!map) return;
 
     SDL_Rect dst = {.w = TILE_WIDTH, .h = TILE_HEIGHT};
-
+    SDL_Rect src = {.w = TILE_WIDTH, .h = TILE_HEIGHT};
     for(int x = 0; x < map->tiles.w; x++)
     {
         for(int y = 0; y < map->tiles.h; y++)
@@ -190,7 +172,32 @@ void tile_map_draw(TileMap *map, SDL_Renderer *r)
             
             dst.x = x * TILE_WIDTH;
             dst.y = y * TILE_WIDTH;
-            SDL_RenderCopy(r, map->sprites, tile_rect(tile), &dst);
+            tile_rect(tile, &src);
+            SDL_RenderCopy(r, map->sprites, &src, &dst);
         }
+    }
+}
+
+#define TILE_AT(x, y) ((x) + ((y) * FONT_SHEET_CELL_STRIDE))
+void tile_switch_type(TileInfo *tile, enum TileType new_type)
+{
+    assert(tile);
+    tile->type = new_type;
+
+    //TODO: Tile will change glyph later based on state and relation
+    //to other tiles. This'll have to do for now.
+    switch(tile->type)
+    {
+    case TT_EMPTY:
+        tile->glyph = 0;
+        break;
+    case TT_STONE:
+        tile->glyph = TILE_AT(2, 11);
+        break;
+    case TT_WALL:
+        tile->glyph = TILE_AT(10, 11);
+        break;
+    default:
+        tile->glyph = 1;
     }
 }
