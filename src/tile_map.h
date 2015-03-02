@@ -3,6 +3,10 @@
 #include <inttypes.h>
 #include "sdltest.h"
 
+// *sound of Marge Simpson going 'hmrrrrm' *
+#define FONT_SHEET_CELL_STRIDE 16
+#define TILE_AT(x, y) ((x) + ((y) * FONT_SHEET_CELL_STRIDE))
+
 enum TileType
 {
     TT_EMPTY,

@@ -9,7 +9,6 @@
 static const int INFO_BAR_HEIGHT = 64; // UI info bar height in px
 static const int TILE_WIDTH = 16;
 static const int TILE_HEIGHT = 16;
-static const int FONT_SHEET_CELL_STRIDE = 16;
 
 struct dim
 {
