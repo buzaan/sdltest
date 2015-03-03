@@ -16,6 +16,13 @@ typedef struct Path Path;
 typedef struct Point Point;
 
 void path_init(Path *p);
+
+/* Finds a path between the two points on the map.  
+ * 
+ * Result given in the Path "out". A path size of zero indicates that
+ * there was no route found between the two points.
+ */
 void path_from_to(Path *out, const TileMap *map, 
-                  const Point *from, const Point *to); 
+                  const Point *from, const Point *to);
+
 void path_destroy(Path *p);
