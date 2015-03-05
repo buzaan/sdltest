@@ -26,3 +26,4 @@ void path_from_to(Path *out, const TileMap *map,
                   const Point *from, const Point *to);
 
 void path_destroy(Path *p);
+void debug_map_bfs(TileMap *map, const Point *start);

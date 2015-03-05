@@ -7,6 +7,7 @@
 #include "tile_map.h"
 #include "gameplay_scene.h"
 #include "graphics.h"
+#include "path.h"
 
 struct Data
 {
@@ -47,7 +48,10 @@ void gameplay_scene_start(Scene *s)
     params.rule = cell_rule;
     params.generations = 2;
     params.seed_ratio = 0.2;
-    tile_map_gen_map(data->map, &params);    
+    tile_map_gen_map(data->map, &params);
+
+    Point start = {.x = 5, .y = 5};
+    debug_map_bfs(data->map, &start);
 }
 
 void gameplay_scene_update(Scene *s, int dt, const InputState *input)

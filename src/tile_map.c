@@ -134,7 +134,6 @@ TileInfo *tile_map_get_tile(TileMap *map, int x, int y)
     {
         return &map->data[y * map->tiles.w + x];
     }
-    fprintf(stderr, "Bad tile %d %d\n", x, y);
     return NULL;
 }
 
@@ -198,5 +197,19 @@ void tile_switch_type(TileInfo *tile, enum TileType new_type)
         break;
     default:
         tile->glyph = 1;
+    }
+}
+
+void tile_map_dimensions(const TileMap *map, int *out_x, int *out_y)
+{
+    assert(map);
+    if(out_x)
+    {
+        *out_x = map->tiles.w;
+    }
+
+    if(out_y)
+    {
+        *out_y = map->tiles.h;
     }
 }

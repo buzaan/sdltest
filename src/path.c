@@ -2,10 +2,13 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include "path.h"
+#include "tile_map.h"
 
 static const size_t PATH_DEFAULT_CAPACITY = 50;
 static const size_t QUEUE_DEFAULT_CAPACITY = 50;
 
+/* Queue of points backed by a circular buffer. Reallocated with
+ * expanded capacity when maximum queue size is reached. */
 struct PtQueue
 {
     Point *data;
@@ -14,13 +17,19 @@ struct PtQueue
     Point *end;
 };
 
-static void queue_init(struct PtQueue *q)
+static void queue_init_capacity(struct PtQueue *q, size_t size)
 {
     assert(q);
-    q->capacity = QUEUE_DEFAULT_CAPACITY;
+    q->capacity = size;
     q->data = malloc(sizeof(Point) * q->capacity);
     q->start = &q->data[0];
     q->end = q->start + 1;
+}
+
+static void queue_init(struct PtQueue *q)
+{
+    assert(q);
+    queue_init_capacity(q, QUEUE_DEFAULT_CAPACITY);
 }
 
 static size_t queue_size(struct PtQueue *q)
@@ -47,6 +56,11 @@ static Point *q_prev(struct PtQueue *q, Point *i)
     return i == &q->data[0] ? &q->data[q->capacity] : i - 1;
 }
 
+static bool queue_empty(struct PtQueue *q)
+{
+    return q_next(q, q->start) == q->end;
+}
+
 // Resizes the queue, copying old elements to the new space.
 static void queue_realloc(struct PtQueue *q)
 {
@@ -66,7 +80,7 @@ static void queue_realloc(struct PtQueue *q)
     q->end = q->start + old_size + 1;
 }
 
-static void enqueue(struct PtQueue *q, Point *p)
+static void enqueue(struct PtQueue *q, const Point *p)
 {
     if(q->end == q->start)
     {
@@ -87,13 +101,11 @@ static void dequeue(struct PtQueue *q, Point *out)
     }
 }
 
-typedef void (*QFE_Function)(Point*);
-void queue_print(struct PtQueue *q, QFE_Function func)
+static void queue_reset(struct PtQueue *q)
 {
-    for(Point *s = q->start; s != q_prev(q, q->end); s = q_next(q, s))
-    {
-        func(s);
-    }
+    assert(q);
+    q->start = &q->data[0];
+    q->end = q->start + 1;
 }
 
 void path_init(struct Path *p)
@@ -137,6 +149,54 @@ void path_from_to_astar(Path *out, const TileMap *map,
                         const Point *to)
 {
 }
+
+void debug_map_bfs(TileMap *map, const Point *start)
+{
+    assert(map);
+    assert(start);
+    struct PtQueue queue;
+    const static Point directions[4] = {
+        {.x = 0, .y = 1}, 
+        {.x = 0, .y = -1},
+        {.x = 1, .y = 0},
+        {.x = -1, .y = 0}};
+    const static size_t num_dirs = sizeof(directions) / sizeof(directions[0]);
+    int w;
+    int h;
+    tile_map_dimensions(map, &w, &h);
+    bool visited[w * h];
+    TileInfo visited_tile = {.type = TT_STONE,
+                             .hit_points = 100,
+                             .glyph = '0'};
+
+    queue_init(&queue);
+    visited[start->x + w * start->y] = true;
+    enqueue(&queue, start);
+    
+    while(!queue_empty(&queue))
+    {
+        Point current;
+        dequeue(&queue, &current);
+        visited[current.x + current.y * w] = true;
+
+        tile_map_set_tile(map, current.x, current.y, &visited_tile);
+
+        for(int dir = 0; dir < num_dirs; dir++)
+        {
+            Point neighbor = current;
+            neighbor.x += directions[dir].x;
+            neighbor.y += directions[dir].y;
+            
+            // Relies on tile map returning NULL for out-of-bounds tiles.
+            TileInfo *tile = tile_map_get_tile(map, neighbor.x, neighbor.y);
+            if(tile && tile->type == TT_EMPTY)
+            {
+                enqueue(&queue, &neighbor);
+            }
+        }
+    }
+}
+             
 
 void path_destroy(struct Path *p)
 {
