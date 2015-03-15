@@ -32,6 +32,11 @@ static void queue_init(struct PtQueue *q)
     queue_init_capacity(q, QUEUE_DEFAULT_CAPACITY);
 }
 
+static void queue_destroy(struct PtQueue *q)
+{
+    free(q->data);
+}
+
 static size_t queue_size(struct PtQueue *q)
 {
     if(q->end <= q->start)
@@ -94,8 +99,12 @@ static void dequeue(struct PtQueue *q, Point *out)
 {
     assert(queue_size(q) > 0);
 
-    *out = *q->start;
-    if(q_next(q, q->start) != q_prev(q, q->end))
+    if(out)
+    {
+        *out = *q->start;
+    }
+    
+    if(!queue_empty(q))
     {
         q->start = q_next(q, q->start);
     }
@@ -169,32 +178,34 @@ void debug_map_bfs(TileMap *map, const Point *start)
                              .hit_points = 100,
                              .glyph = '0'};
 
+    memset(visited, 0, sizeof(bool) * w * h);
+
     queue_init(&queue);
-    visited[start->x + w * start->y] = true;
     enqueue(&queue, start);
+    visited[start->x + start->y * w] = true;
     
     while(!queue_empty(&queue))
     {
         Point current;
         dequeue(&queue, &current);
-        visited[current.x + current.y * w] = true;
-
-        tile_map_set_tile(map, current.x, current.y, &visited_tile);
-
         for(int dir = 0; dir < num_dirs; dir++)
         {
             Point neighbor = current;
             neighbor.x += directions[dir].x;
             neighbor.y += directions[dir].y;
-            
+            size_t tile_ord = neighbor.x + neighbor.y * w;
+
             // Relies on tile map returning NULL for out-of-bounds tiles.
             TileInfo *tile = tile_map_get_tile(map, neighbor.x, neighbor.y);
-            if(tile && tile->type == TT_EMPTY)
+            if(tile && tile->type == TT_EMPTY && !visited[tile_ord])
             {
                 enqueue(&queue, &neighbor);
+                visited[tile_ord] = true;
             }
-        }
+        }        
+        tile_map_set_tile(map, current.x, current.y, &visited_tile);
     }
+    queue_destroy(&queue);
 }
              
 
