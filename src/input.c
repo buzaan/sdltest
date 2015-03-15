@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -27,7 +28,7 @@ bool input_read_keymap(char const *file, InputKeymap *map)
 
 void input_update(InputState *state, InputKeymap *map)
 {
-    if(!state) return;
+    assert(state);
 
     SDL_Event event;
     while(SDL_PollEvent(&event))

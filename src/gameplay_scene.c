@@ -50,14 +50,17 @@ void gameplay_scene_start(Scene *s)
     params.generations = 2;
     params.seed_ratio = 0.2;
     tile_map_gen_map(data->map, &params);
-
-    Point start = {.x = 5, .y = 5};
-    debug_map_bfs(data->map, &start);
 }
 
 void gameplay_scene_update(Scene *s, int dt, const InputState *input)
 {
-
+    assert(input);
+    if(input->select)
+    {
+        Point start = {.x = 5, .y = 5};
+        Data *data = scene_get_data(s);
+        debug_map_bfs(data->map, &start);
+    }
 }
 
 void gameplay_scene_draw(Scene *s, SDL_Renderer *renderer)

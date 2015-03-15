@@ -17,6 +17,15 @@ struct PtQueue
     Point *end;
 };
 
+// Verifies invariants of queue
+static bool queue_valid(struct PtQueue *q)
+{
+    Point *data_start = &q->data[0];
+    Point *data_end = &q->data[q->capacity];
+    return (data_start <= q->start && q->start < data_end)
+        && (data_start <= q->end && q->end < data_end);
+}
+
 static void queue_init_capacity(struct PtQueue *q, size_t size)
 {
     assert(q);
@@ -52,13 +61,13 @@ static size_t queue_size(struct PtQueue *q)
 // Returns the next location in the cyclic queue buffer
 static Point *q_next(struct PtQueue *q, Point *i)
 {
-    return i == &q->data[q->capacity] ? &q->data[0] : i + 1;
+    return i == &q->data[q->capacity - 1] ? &q->data[0] : i + 1;
 }
 
 // " previous " 
 static Point *q_prev(struct PtQueue *q, Point *i)
 {
-    return i == &q->data[0] ? &q->data[q->capacity] : i - 1;
+    return i == &q->data[0] ? &q->data[q->capacity - 1] : i - 1;
 }
 
 static bool queue_empty(struct PtQueue *q)
@@ -87,16 +96,21 @@ static void queue_realloc(struct PtQueue *q)
 
 static void enqueue(struct PtQueue *q, const Point *p)
 {
+    assert(queue_valid(q));
+
     if(q->end == q->start)
     {
         queue_realloc(q);
     }
     *q_prev(q, q->end) = *p;
     q->end = q_next(q, q->end);
+
+    assert(queue_valid(q));
 }
 
 static void dequeue(struct PtQueue *q, Point *out)
 {
+    assert(queue_valid(q));
     assert(queue_size(q) > 0);
 
     if(out)
@@ -108,6 +122,8 @@ static void dequeue(struct PtQueue *q, Point *out)
     {
         q->start = q_next(q, q->start);
     }
+
+    assert(queue_valid(q));
 }
 
 static void queue_reset(struct PtQueue *q)
