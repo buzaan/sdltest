@@ -15,6 +15,7 @@ struct Data
 };
 typedef struct Data Data;
 
+/* Rule used for generating CA-based random map */
 static void cell_rule(TileMap *map, int x, int y, TileInfo *tile)
 {
     // loops over 3x3 grid surrounding <x,y> cell, excluding cell itself

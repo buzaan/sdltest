@@ -19,6 +19,7 @@ struct game_s
 	Scene *scene;
 	struct scene_node *next;
     } *scenes;
+    Scene *next_scene;
 };
 
 Game *game_create(char *title, int x_size, int y_size)
@@ -52,6 +53,7 @@ Game *game_create(char *title, int x_size, int y_size)
     game->last_tick = SDL_GetTicks();
     game->quitting = false;
     game->scenes = NULL;
+    game->next_scene = NULL;
     return game;
 }
 
@@ -106,6 +108,17 @@ void game_tick(Game *game)
 	return;
     }
 
+    if(game->next_scene)
+    {
+        if(game->scene)
+        {
+            scene_stop(game->scene);
+        }
+        game->scene = game->next_scene;
+        game->next_scene = NULL;
+        scene_start(game->scene);
+    }
+
     if(game->scene)
     {
 	Uint32 dt = update_timer(game);
@@ -114,8 +127,7 @@ void game_tick(Game *game)
 
 	SDL_RenderPresent(game->renderer);
 
-	// Probably wrong.
-	SDL_Delay(dt < 1000 / 30 ? 1000 / 30 - dt : 0);
+	SDL_Delay(1000 / 30);
     }
 }		 
 
@@ -158,15 +170,9 @@ void game_switch_to_scene(Game *game, SceneID scene_id)
     if(!game) return;
 
     Scene *s = find_scene(game->scenes, scene_id);
-    if(game->scene)
-    {
-	scene_stop(game->scene);
-    }
-
     if(s)
     {
-	game->scene = s;
-	scene_start(s);
+        game->next_scene = s;
     }
     else
     {
