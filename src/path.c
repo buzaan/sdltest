@@ -38,7 +38,10 @@ static void queue_init_capacity(struct PtQueue *q, size_t size)
 static void queue_init(struct PtQueue *q)
 {
     assert(q);
+
     queue_init_capacity(q, QUEUE_DEFAULT_CAPACITY);
+
+    assert(queue_valid(q));
 }
 
 static void queue_destroy(struct PtQueue *q)
