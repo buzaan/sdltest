@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include "bit_vector.h"
 #include "path.h"
 #include "tile_map.h"
 
@@ -182,26 +183,29 @@ void debug_map_bfs(TileMap *map, const Point *start)
 {
     assert(map);
     assert(start);
-    struct PtQueue queue;
+
     const static Point directions[4] = {
         {.x = 0, .y = 1}, 
         {.x = 0, .y = -1},
         {.x = 1, .y = 0},
         {.x = -1, .y = 0}};
     const static size_t num_dirs = sizeof(directions) / sizeof(directions[0]);
+
+    struct PtQueue queue;
+    struct BitVec seen;
+    unsigned int tile_ord;
     int w;
     int h;
-    tile_map_dimensions(map, &w, &h);
-    bool visited[w * h];
+    tile_map_dimensions(map, &w, &h);    
     TileInfo visited_tile = {.type = TT_STONE,
                              .hit_points = 100,
                              .glyph = '0'};
-
-    memset(visited, 0, sizeof(bool) * w * h);
-
+    
+    bv_init(&seen, w * h);
     queue_init(&queue);
     enqueue(&queue, start);
-    visited[start->x + start->y * w] = true;
+    tile_ord = start->x + start->y * w;
+    bv_set(&seen, tile_ord, true);
     
     while(!queue_empty(&queue))
     {
@@ -212,19 +216,21 @@ void debug_map_bfs(TileMap *map, const Point *start)
             Point neighbor = current;
             neighbor.x += directions[dir].x;
             neighbor.y += directions[dir].y;
-            size_t tile_ord = neighbor.x + neighbor.y * w;
+            tile_ord = neighbor.x + neighbor.y * w;
 
             // Relies on tile map returning NULL for out-of-bounds tiles.
             TileInfo *tile = tile_map_get_tile(map, neighbor.x, neighbor.y);
-            if(tile && tile->type == TT_EMPTY && !visited[tile_ord])
+            if(tile && tile->type == TT_EMPTY && !bv_get(&seen, tile_ord))
             {
                 enqueue(&queue, &neighbor);
-                visited[tile_ord] = true;
+                bv_set(&seen, tile_ord, true);
             }
         }        
         tile_map_set_tile(map, current.x, current.y, &visited_tile);
     }
+
     queue_destroy(&queue);
+    bv_destroy(&seen);
 }
              
 
