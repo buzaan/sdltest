@@ -57,7 +57,7 @@ void gameplay_scene_update(Scene *s, int dt, const InputState *input)
     assert(input);
     if(input->select)
     {
-        Point start = {.x = 5, .y = 5};
+        Point start = {.x = 25, .y = 5};
         Data *data = scene_get_data(s);
         debug_map_bfs(data->map, &start);
     }

@@ -146,13 +146,19 @@ void path_init(struct Path *p)
 
 static void path_push_point(struct Path *p, const struct Point *pt)
 {
-    if(p->size + 1 > p->capacity)
+    if(p->size == p->capacity)
     {
         p->capacity *= 2;
         p->points = realloc(p->points, sizeof(struct Point) * p->capacity);
     }
     p->points[p->size] = *pt;
     p->size++;
+}
+
+void path_from_to_astar(Path *out, const TileMap *map,
+                        const Point *from,
+                        const Point *to)
+{
 }
 
 void path_from_to_bfs(Path *out, const TileMap *map,
@@ -173,12 +179,6 @@ void path_from_to(Path *out, const TileMap *map,
     path_from_to_bfs(out, map, from, to);
 }
 
-void path_from_to_astar(Path *out, const TileMap *map,
-                        const Point *from,
-                        const Point *to)
-{
-}
-
 void debug_map_bfs(TileMap *map, const Point *start)
 {
     assert(map);
@@ -193,6 +193,7 @@ void debug_map_bfs(TileMap *map, const Point *start)
 
     struct PtQueue queue;
     struct BitVec seen;
+    Point goal = {.x = 25, .y = 30};
     unsigned int tile_ord;
     int w;
     int h;
@@ -200,17 +201,37 @@ void debug_map_bfs(TileMap *map, const Point *start)
     TileInfo visited_tile = {.type = TT_STONE,
                              .hit_points = 100,
                              .glyph = '0'};
-    
+    int *parent = calloc(w * h, sizeof(int));
+
     bv_init(&seen, w * h);
     queue_init(&queue);
     enqueue(&queue, start);
+
     tile_ord = start->x + start->y * w;
     bv_set(&seen, tile_ord, true);
+    parent[tile_ord] = -1;
     
     while(!queue_empty(&queue))
     {
         Point current;
         dequeue(&queue, &current);
+        unsigned int current_ord = current.x + current.y * w;
+        
+        if(current.x == goal.x && current.y == goal.y)
+        {
+            TileInfo path_tile = {.type = TT_STONE, .glyph = '1'};
+            tile_map_set_tile(map, current.x, current.y, &path_tile);
+            int *p = &parent[current_ord];
+            while(*p != -1)
+            {
+                int x = *p % w;
+                int y = *p / w;
+                tile_map_set_tile(map, x, y, &path_tile);
+                p = &parent[*p];
+            }
+            break;
+        }
+
         for(int dir = 0; dir < num_dirs; dir++)
         {
             Point neighbor = current;
@@ -224,6 +245,7 @@ void debug_map_bfs(TileMap *map, const Point *start)
             {
                 enqueue(&queue, &neighbor);
                 bv_set(&seen, tile_ord, true);
+                parent[tile_ord] = current_ord;
             }
         }        
         tile_map_set_tile(map, current.x, current.y, &visited_tile);
@@ -231,6 +253,7 @@ void debug_map_bfs(TileMap *map, const Point *start)
 
     queue_destroy(&queue);
     bv_destroy(&seen);
+    free(parent);
 }
              
 
