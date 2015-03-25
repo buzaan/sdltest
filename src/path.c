@@ -8,6 +8,168 @@
 static const size_t PATH_DEFAULT_CAPACITY = 50;
 static const size_t QUEUE_DEFAULT_CAPACITY = 50;
 
+/* PriorityQueue for ints implemented via min heap */
+struct PriorityQueue
+{
+    struct HeapItem
+    {
+        int value;
+        int priority;
+    } *items;
+    size_t size; // Number of items currently in queue
+    size_t capacity; // Maximum number of items that could be in queue
+};
+
+static size_t pqueue_parent(size_t location)
+{
+    assert(location != 0);
+    return location / 2;
+}
+
+static size_t pqueue_lchild(size_t location)
+{
+    return 2 * location + 1;
+}
+
+static size_t pqueue_rchild(size_t location)
+{
+    return 2 * location + 2;
+}
+
+static void pqueue_swap(struct PriorityQueue *q, size_t a, size_t b)
+{
+    struct HeapItem tmp = q->items[a];
+    q->items[a] = q->items[b];
+    q->items[b] = tmp;
+}
+
+static bool pqueue_valid_subtree(struct PriorityQueue *q, size_t location)
+{
+    assert(q);
+
+    if(location > q->size) return true;
+
+    size_t lchild = pqueue_lchild(location);
+    size_t rchild = pqueue_rchild(location);
+    int priority = q->items[location].priority;
+    return (lchild < q->size ? priority <= q->items[lchild].priority : true)
+        && (rchild < q->size ? priority <= q->items[rchild].priority : true)
+        && pqueue_valid_subtree(q, lchild)
+        && pqueue_valid_subtree(q, rchild);
+}
+
+static bool pqueue_valid(struct PriorityQueue *q)
+{
+    return pqueue_valid_subtree(q, 0);
+}
+
+static void pqueue_init_capacity(struct PriorityQueue *q, size_t capacity)
+{
+    assert(q);
+    q->items = malloc(capacity * sizeof(struct HeapItem));
+    q->size = 0;
+    q->capacity = capacity;
+}
+
+static void pqueue_destroy(struct PriorityQueue *q)
+{
+    assert(q);
+    free(q->items);
+}
+
+static void pqueue_realloc(struct PriorityQueue *q)
+{
+    assert(q);
+
+    q->capacity *= 2;
+    q->items = realloc(q->items, q->capacity * sizeof(struct HeapItem));
+
+    assert(pqueue_valid(q));
+}
+
+static void pqueue_init(struct PriorityQueue *q)
+{
+    pqueue_init_capacity(q, QUEUE_DEFAULT_CAPACITY);
+}
+
+static void pqueue_heapify_up(struct PriorityQueue *q, size_t location)
+{
+    assert(q);
+    if(location != 0)
+    {
+        size_t parent = pqueue_parent(location);
+        if(q->items[parent].priority > q->items[location].priority)
+        {
+            pqueue_swap(q, parent, location);
+            pqueue_heapify_up(q, parent);
+        }
+    }    
+}
+
+static void pqueue_insert(struct PriorityQueue *q, int value, int priority)
+{
+    assert(pqueue_valid(q));
+
+    if(q->size == q->capacity)
+    {
+        pqueue_realloc(q);
+    }
+    struct HeapItem *item = &q->items[q->size];
+    item->value = value;
+    item->priority = priority;
+    pqueue_heapify_up(q, q->size);
+    q->size++;
+
+    assert(pqueue_valid(q));
+}
+
+static bool pqueue_empty(struct PriorityQueue *q)
+{
+    return q->size == 0;
+}
+
+static void pqueue_heapify(struct PriorityQueue *q, size_t location)
+{
+    assert(q);
+    
+    int priority = q->items[location].priority;
+    size_t lchild = pqueue_lchild(location);
+    size_t new_min_loc = location;
+
+    if(lchild < q->size && q->items[lchild].priority < priority)
+    {
+        new_min_loc = lchild;
+    }
+
+    size_t rchild = pqueue_rchild(location);
+    if(rchild < q->size && q->items[rchild].priority < q->items[new_min_loc].priority)
+    {
+        new_min_loc = rchild;
+    }
+
+    if(new_min_loc != location)
+    {
+        pqueue_swap(q, new_min_loc, location);
+        pqueue_heapify(q, new_min_loc);
+    }
+}
+
+static int pqueue_extract(struct PriorityQueue *q)
+{
+    assert(q);
+    assert(!pqueue_empty(q));
+
+    int out = q->items[0].value;
+
+    pqueue_swap(q, 0, q->size - 1);
+    q->size--;
+    pqueue_heapify(q, 0);
+
+    assert(pqueue_valid(q));
+
+    return out;
+}
+
 /* Queue of points backed by a circular buffer. Reallocated with
  * expanded capacity when maximum queue size is reached. */
 struct PtQueue
