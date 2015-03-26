@@ -20,20 +20,10 @@ struct PriorityQueue
     size_t capacity; // Maximum number of items that could be in queue
 };
 
-void pqueue_debug_print(struct PriorityQueue *q)
-{
-    fprintf(stderr, "<%ld/%ld>[", q->size, q->capacity);
-    for(int i = 0; i < q->size; i++)
-    {
-        fprintf(stderr, "(%d, p%d) ", q->items[i].value, q->items[i].priority);
-    }
-    fputs("]", stderr);
-}
-
 static size_t pqueue_parent(size_t location)
 {
     assert(location != 0);
-    return location / 2;
+    return (location - 1) / 2;
 }
 
 static size_t pqueue_lchild(size_t location)
@@ -44,6 +34,23 @@ static size_t pqueue_lchild(size_t location)
 static size_t pqueue_rchild(size_t location)
 {
     return 2 * location + 2;
+}
+
+static void pqueue_tree_print(struct PriorityQueue *q, size_t n, int l)
+{
+    if(n < q->size)
+    {
+        for(int i = 0; i < l; i++) fputs("  ", stderr);
+        printf("%d p(%d)\n", q->items[n].value, q->items[n].priority);
+        pqueue_tree_print(q, pqueue_lchild(n), l + 1);
+        pqueue_tree_print(q, pqueue_rchild(n), l + 1);
+    }
+}
+
+void pqueue_debug_print(struct PriorityQueue *q)
+{
+    fprintf(stderr, "<%ld/%ld>\n", q->size, q->capacity);
+    pqueue_tree_print(q, 0, 0);
 }
 
 static void pqueue_swap(struct PriorityQueue *q, size_t a, size_t b)
@@ -102,7 +109,7 @@ static void pqueue_init(struct PriorityQueue *q)
     pqueue_init_capacity(q, QUEUE_DEFAULT_CAPACITY);
 }
 
-static void pqueue_heapify_up(struct PriorityQueue *q, size_t location)
+static void pqueue_bubble_up(struct PriorityQueue *q, size_t location)
 {
     assert(q);
     if(location != 0)
@@ -111,7 +118,7 @@ static void pqueue_heapify_up(struct PriorityQueue *q, size_t location)
         if(q->items[parent].priority > q->items[location].priority)
         {
             pqueue_swap(q, parent, location);
-            pqueue_heapify_up(q, parent);
+            pqueue_bubble_up(q, parent);
         }
     }
 }
@@ -127,7 +134,7 @@ static void pqueue_insert(struct PriorityQueue *q, TileID value, int priority)
     struct HeapItem *item = &q->items[q->size];
     item->value = value;
     item->priority = priority;
-    pqueue_heapify_up(q, q->size);
+    pqueue_bubble_up(q, q->size);
     q->size++;
 
     assert(pqueue_valid(q));
@@ -342,6 +349,11 @@ static void path_reverse(struct Path *p)
     }
 }
 
+static void path_reset(struct Path *p)
+{
+    p->size = 0;
+}
+
 static void path_from_to_astar(struct Path *out, const TileMap *map,
                                const struct Point *from,
                                const struct Point *to)
@@ -357,6 +369,7 @@ static void path_from_to_astar(struct Path *out, const TileMap *map,
 
     pqueue_init(&queue);
     bv_init(&seen, max_id);
+    path_reset(out);
 
     pqueue_insert(&queue, tid, 0);
     bv_set(&seen, tid, true);
@@ -417,7 +430,6 @@ void path_from_to(struct Path *out, const TileMap *map,
                   const struct Point *to)
 {
     assert(out); assert(map); assert(from); assert(to);
-    fputs("Finding path", stderr);
     path_from_to_astar(out, map, from, to);
 }
 
