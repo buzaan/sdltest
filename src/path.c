@@ -8,17 +8,27 @@
 static const size_t PATH_DEFAULT_CAPACITY = 50;
 static const size_t QUEUE_DEFAULT_CAPACITY = 50;
 
-/* PriorityQueue for ints implemented via min heap */
+/* PriorityQueue for TileIDs implemented via min heap */
 struct PriorityQueue
 {
     struct HeapItem
     {
-        int value;
+        TileID value;
         int priority;
     } *items;
     size_t size; // Number of items currently in queue
     size_t capacity; // Maximum number of items that could be in queue
 };
+
+void pqueue_debug_print(struct PriorityQueue *q)
+{
+    fprintf(stderr, "<%ld/%ld>[", q->size, q->capacity);
+    for(int i = 0; i < q->size; i++)
+    {
+        fprintf(stderr, "(%d, p%d) ", q->items[i].value, q->items[i].priority);
+    }
+    fputs("]", stderr);
+}
 
 static size_t pqueue_parent(size_t location)
 {
@@ -103,10 +113,10 @@ static void pqueue_heapify_up(struct PriorityQueue *q, size_t location)
             pqueue_swap(q, parent, location);
             pqueue_heapify_up(q, parent);
         }
-    }    
+    }
 }
 
-static void pqueue_insert(struct PriorityQueue *q, int value, int priority)
+static void pqueue_insert(struct PriorityQueue *q, TileID value, int priority)
 {
     assert(pqueue_valid(q));
 
@@ -131,7 +141,7 @@ static bool pqueue_empty(struct PriorityQueue *q)
 static void pqueue_heapify(struct PriorityQueue *q, size_t location)
 {
     assert(q);
-    
+
     int priority = q->items[location].priority;
     size_t lchild = pqueue_lchild(location);
     size_t new_min_loc = location;
@@ -154,7 +164,7 @@ static void pqueue_heapify(struct PriorityQueue *q, size_t location)
     }
 }
 
-static int pqueue_extract(struct PriorityQueue *q)
+static TileID pqueue_extract(struct PriorityQueue *q)
 {
     assert(q);
     assert(!pqueue_empty(q));
@@ -174,17 +184,17 @@ static int pqueue_extract(struct PriorityQueue *q)
  * expanded capacity when maximum queue size is reached. */
 struct PtQueue
 {
-    Point *data;
+    struct Point *data;
     size_t capacity;
-    Point *start;
-    Point *end;
+    struct Point *start;
+    struct Point *end;
 };
 
 // Verifies invariants of queue
 static bool queue_valid(struct PtQueue *q)
 {
-    Point *data_start = &q->data[0];
-    Point *data_end = &q->data[q->capacity];
+    struct Point *data_start = &q->data[0];
+    struct Point *data_end = &q->data[q->capacity];
     return (data_start <= q->start && q->start < data_end)
         && (data_start <= q->end && q->end < data_end);
 }
@@ -193,7 +203,7 @@ static void queue_init_capacity(struct PtQueue *q, size_t size)
 {
     assert(q);
     q->capacity = size;
-    q->data = malloc(sizeof(Point) * q->capacity);
+    q->data = malloc(sizeof(struct Point) * q->capacity);
     q->start = &q->data[0];
     q->end = q->start + 1;
 }
@@ -225,13 +235,13 @@ static size_t queue_size(struct PtQueue *q)
 }
 
 // Returns the next location in the cyclic queue buffer
-static Point *q_next(struct PtQueue *q, Point *i)
+static struct Point *q_next(struct PtQueue *q, struct Point *i)
 {
     return i == &q->data[q->capacity - 1] ? &q->data[0] : i + 1;
 }
 
-// " previous " 
-static Point *q_prev(struct PtQueue *q, Point *i)
+// " previous "
+static struct Point *q_prev(struct PtQueue *q, struct Point *i)
 {
     return i == &q->data[0] ? &q->data[q->capacity - 1] : i - 1;
 }
@@ -246,8 +256,8 @@ static void queue_realloc(struct PtQueue *q)
 {
     size_t old_size = queue_size(q);
     q->capacity *= 2;
-    Point *new = malloc(sizeof(Point) * q->capacity);
-    for(Point *i = &new[0];
+    struct Point *new = malloc(sizeof(struct Point) * q->capacity);
+    for(struct Point *i = &new[0];
         q->start != q_prev(q, q->end);
         q->start = q_next(q, q->start), i++)
     {
@@ -260,7 +270,7 @@ static void queue_realloc(struct PtQueue *q)
     q->end = q->start + old_size + 1;
 }
 
-static void enqueue(struct PtQueue *q, const Point *p)
+static void enqueue(struct PtQueue *q, const struct Point *p)
 {
     assert(queue_valid(q));
 
@@ -274,7 +284,7 @@ static void enqueue(struct PtQueue *q, const Point *p)
     assert(queue_valid(q));
 }
 
-static void dequeue(struct PtQueue *q, Point *out)
+static void dequeue(struct PtQueue *q, struct Point *out)
 {
     assert(queue_valid(q));
     assert(queue_size(q) > 0);
@@ -283,7 +293,7 @@ static void dequeue(struct PtQueue *q, Point *out)
     {
         *out = *q->start;
     }
-    
+
     if(!queue_empty(q))
     {
         q->start = q_next(q, q->start);
@@ -301,6 +311,7 @@ static void queue_reset(struct PtQueue *q)
 
 void path_init(struct Path *p)
 {
+    assert(p);
     p->points = malloc(sizeof(p->points[0]) * PATH_DEFAULT_CAPACITY);
     p->capacity = PATH_DEFAULT_CAPACITY;
     p->size = 0;
@@ -317,111 +328,100 @@ static void path_push_point(struct Path *p, const struct Point *pt)
     p->size++;
 }
 
-void path_from_to_astar(Path *out, const TileMap *map,
-                        const Point *from,
-                        const Point *to)
+static void path_reverse(struct Path *p)
 {
-}
-
-void path_from_to_bfs(Path *out, const TileMap *map,
-                      const Point *from,
-                      const Point *to)
-{
-    
-}
-
-void path_from_to(Path *out, const TileMap *map, 
-                  const Point *from, 
-                  const Point *to)
-{
-    assert(out);
-    assert(map);
-    assert(from);
-    assert(to);
-    path_from_to_bfs(out, map, from, to);
-}
-
-void debug_map_bfs(TileMap *map, const Point *start)
-{
-    assert(map);
-    assert(start);
-
-    const static Point directions[4] = {
-        {.x = 0, .y = 1}, 
-        {.x = 0, .y = -1},
-        {.x = 1, .y = 0},
-        {.x = -1, .y = 0}};
-    const static size_t num_dirs = sizeof(directions) / sizeof(directions[0]);
-
-    struct PtQueue queue;
-    struct BitVec seen;
-    Point goal = {.x = 25, .y = 30};
-    unsigned int tile_ord;
-    int w;
-    int h;
-    tile_map_dimensions(map, &w, &h);    
-    TileInfo visited_tile = {.type = TT_STONE,
-                             .hit_points = 100,
-                             .glyph = '0'};
-    int *parent = calloc(w * h, sizeof(int));
-
-    bv_init(&seen, w * h);
-    queue_init(&queue);
-    enqueue(&queue, start);
-
-    tile_ord = start->x + start->y * w;
-    bv_set(&seen, tile_ord, true);
-    parent[tile_ord] = -1;
-    
-    while(!queue_empty(&queue))
+    assert(p);
+    for(size_t i = 0; i < p->size / 2; i++)
     {
-        Point current;
-        dequeue(&queue, &current);
-        unsigned int current_ord = current.x + current.y * w;
-        
-        if(current.x == goal.x && current.y == goal.y)
+        struct Point tmp;
+        struct Point *a = &p->points[i];
+        struct Point *b = &p->points[p->size - i - 1];
+        tmp = *a;
+        *a = *b;
+        *b = tmp;
+    }
+}
+
+static void path_from_to_astar(struct Path *out, const TileMap *map,
+                               const struct Point *from,
+                               const struct Point *to)
+{
+    assert(out); assert(map); assert(from); assert(to);
+
+    struct PriorityQueue queue;
+    struct BitVec seen;
+    unsigned int max_id = tile_map_max_id(map);
+    int *parent = calloc(max_id, sizeof(int));
+    int *cost = calloc(max_id, sizeof(int));
+    TileID tid = tile_map_tile_id(map, from);
+
+    pqueue_init(&queue);
+    bv_init(&seen, max_id);
+
+    pqueue_insert(&queue, tid, 0);
+    bv_set(&seen, tid, true);
+    parent[tid] = -1;
+    cost[tid] = 1;
+
+    while(!pqueue_empty(&queue))
+    {
+        TileID current = pqueue_extract(&queue);
+        struct Point cur_pt;
+        tile_map_coord(map, current, &cur_pt);
+
+        if(cur_pt.x == to->x && cur_pt.y == to->y)
         {
-            TileInfo path_tile = {.type = TT_STONE, .glyph = '1'};
-            tile_map_set_tile(map, current.x, current.y, &path_tile);
-            int *p = &parent[current_ord];
-            while(*p != -1)
+            do
             {
-                int x = *p % w;
-                int y = *p / w;
-                tile_map_set_tile(map, x, y, &path_tile);
-                p = &parent[*p];
-            }
+                tile_map_coord(map, current, &cur_pt);
+                path_push_point(out, &cur_pt);
+                current = parent[current];
+            }while(current != -1);
+            path_reverse(out);
             break;
         }
 
-        for(int dir = 0; dir < num_dirs; dir++)
+        TileID neighbors[4]; //TODO: remove magic #
+        unsigned int nbr_count = tile_map_neighbors(map, current, neighbors, 4);
+        assert(nbr_count <= 4);
+        for(int i = 0; i < nbr_count; i++)
         {
-            Point neighbor = current;
-            neighbor.x += directions[dir].x;
-            neighbor.y += directions[dir].y;
-            tile_ord = neighbor.x + neighbor.y * w;
-
-            // Relies on tile map returning NULL for out-of-bounds tiles.
-            TileInfo *tile = tile_map_get_tile(map, neighbor.x, neighbor.y);
-            if(tile && tile->type == TT_EMPTY && !bv_get(&seen, tile_ord))
+            struct Point pt;
+            tile_map_coord(map, neighbors[i], &pt);
+            if(!bv_get(&seen, neighbors[i]))
             {
-                enqueue(&queue, &neighbor);
-                bv_set(&seen, tile_ord, true);
-                parent[tile_ord] = current_ord;
+                bv_set(&seen, neighbors[i], true);
+                parent[neighbors[i]] = current;
+                cost[neighbors[i]] = cost[current] + 1;
+                unsigned int priority = cost[neighbors[i]] + (abs(pt.x - to->x) + abs(pt.y - to->y));
+                pqueue_insert(&queue, neighbors[i], priority);
             }
-        }        
-        tile_map_set_tile(map, current.x, current.y, &visited_tile);
+        }
     }
 
-    queue_destroy(&queue);
+    pqueue_destroy(&queue);
     bv_destroy(&seen);
     free(parent);
+    free(cost);
 }
-             
+
+void path_from_to_bfs(struct Path *out, const TileMap *map,
+                      const struct Point *from,
+                      const struct Point *to)
+{
+
+}
+
+void path_from_to(struct Path *out, const TileMap *map,
+                  const struct Point *from,
+                  const struct Point *to)
+{
+    assert(out); assert(map); assert(from); assert(to);
+    fputs("Finding path", stderr);
+    path_from_to_astar(out, map, from, to);
+}
 
 void path_destroy(struct Path *p)
 {
     free(p->points);
 }
-
-

@@ -9,6 +9,12 @@
 static const int INFO_BAR_HEIGHT = 64; // UI info bar height in px
 static const int TILE_WIDTH = 16;
 static const int TILE_HEIGHT = 16;
+static const struct Point DIRECTIONS[4] = {
+    {.x = 0, .y = 1}, 
+    {.x = 0, .y = -1},
+    {.x = 1, .y = 0},
+    {.x = -1, .y = 0}};
+static const size_t NUM_DIRECTIONS = sizeof(DIRECTIONS) / sizeof(DIRECTIONS[0]);
 
 struct dim
 {
@@ -128,7 +134,7 @@ void tile_map_destroy(TileMap *map)
    }
 }
 
-TileInfo *tile_map_get_tile(TileMap *map, int x, int y)
+TileInfo *tile_map_get_tile(const TileMap *map, int x, int y)
 {
     if(map && bounds(0, x, map->tiles.w) && bounds(0, y, map->tiles.h))
     {
@@ -213,3 +219,52 @@ void tile_map_dimensions(const TileMap *map, int *out_x, int *out_y)
         *out_y = map->tiles.h;
     }
 }
+
+unsigned int tile_map_tile_id(const TileMap *map, const struct Point *pt)
+{
+    assert(map); assert(pt);
+    return pt->x + pt->y * map->tiles.w;
+}
+
+void tile_map_coord(const TileMap *map, TileID tid, struct Point *pt_out)
+{
+    assert(map); assert(pt_out);
+    pt_out->x = tid % map->tiles.w;
+    pt_out->y = tid / map->tiles.w;
+}
+
+unsigned int tile_map_max_id(const TileMap *map)
+{
+    return map->tiles.w * map->tiles.h;
+}
+
+unsigned int tile_map_neighbors(const TileMap *map, TileID tid,
+                                TileID *out_neighbors, size_t count)
+{
+    assert(map);
+    assert(tid < tile_map_max_id(map));
+    assert(out_neighbors);
+
+    unsigned int num_neighbors = 0;
+    TileID *insert = &out_neighbors[0];
+    struct Point p;
+    tile_map_coord(map, tid, &p);
+    for(int i = 0; i < NUM_DIRECTIONS; i++)
+    {
+        struct Point neighbor = p;
+        neighbor.x += DIRECTIONS[i].x;
+        neighbor.y += DIRECTIONS[i].y;
+        TileInfo *info = tile_map_get_tile(map, neighbor.x, neighbor.y);
+        if(info && info->type == TT_EMPTY) // TODO - don't hard-code type.
+        {
+            num_neighbors++;
+            if(insert < &out_neighbors[count])
+            {
+                *insert = tile_map_tile_id(map, &neighbor);
+                insert++;
+            }
+        }
+    }
+    return num_neighbors;
+}
+

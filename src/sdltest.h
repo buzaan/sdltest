@@ -28,6 +28,12 @@ struct InputKeymap
 typedef struct InputKeymap InputKeymap;
 
 
+struct Point
+{
+    unsigned int x;
+    unsigned int y;
+};
+
 enum SceneID
 {
     SCENE_MENU,
