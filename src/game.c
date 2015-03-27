@@ -15,9 +15,9 @@ struct game_s
 
     struct scene_node
     {
-	int scene_id;
-	Scene *scene;
-	struct scene_node *next;
+        int scene_id;
+        Scene *scene;
+        struct scene_node *next;
     } *scenes;
     Scene *next_scene;
 };
@@ -26,27 +26,27 @@ Game *game_create(char *title, int x_size, int y_size)
 {
     if(SDL_Init(SDL_INIT_AUDIO) != 0)
     {
-	return NULL;
+        return NULL;
     }
-
+    
     Game *game = malloc(sizeof(Game));
     game->window = SDL_CreateWindow(
-	title, 
-	100, 100, 
-	x_size, y_size, 
-	SDL_WINDOW_SHOWN);
+        title, 
+        100, 100, 
+        x_size, y_size, 
+        SDL_WINDOW_SHOWN);
     if(!game->window)
     {
-	return NULL;
+        return NULL;
     }
 
     game->renderer = SDL_CreateRenderer(
-	game->window, 
-	-1, 
-	SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+        game->window, 
+        -1, 
+        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if(!game->renderer)
     {
-	return NULL;
+        return NULL;
     }
 
     game->scene = NULL;
@@ -61,22 +61,22 @@ void game_destroy(Game *game)
 {
     if(game)
     {
-	if(game->scene)
-	{
-	    scene_stop(game->scene);
-	}
+        if(game->scene)
+        {
+            scene_stop(game->scene);
+        }
 
-	struct scene_node *cur = game->scenes;
-	while(cur)
-	{
-	    struct scene_node *tmp = cur;
-	    cur = tmp->next;
-	    free(tmp);
-	};
-	
-	SDL_DestroyRenderer(game->renderer);
-	SDL_DestroyWindow(game->window);
-	free(game);
+        struct scene_node *cur = game->scenes;
+        while(cur)
+        {
+            struct scene_node *tmp = cur;
+            cur = tmp->next;
+            free(tmp);
+        };
+        
+        SDL_DestroyRenderer(game->renderer);
+        SDL_DestroyWindow(game->window);
+        free(game);
     }
 }
 
@@ -96,16 +96,16 @@ static Uint64 update_timer(Game *game)
 void game_tick(Game *game)
 {
     InputState state = { 
-	.up = false, .down = false, 
-	.left = false, .right = false,
-	.cursor = {.x = 0, .y = 0, .active = false},
-	.quit = false};
+        .up = false, .down = false, 
+        .left = false, .right = false,
+        .cursor = {.x = 0, .y = 0, .active = false},
+        .quit = false};
 
     input_update(&state, NULL);
     if(state.quit)
     {
-	game->quitting = true;
-	return;
+        game->quitting = true;
+        return;
     }
 
     if(game->next_scene)
@@ -121,28 +121,28 @@ void game_tick(Game *game)
 
     if(game->scene)
     {
-	Uint32 dt = update_timer(game);
-	scene_update(game->scene, dt, &state);
-	scene_draw(game->scene, game->renderer);
+        Uint32 dt = update_timer(game);
+        scene_update(game->scene, dt, &state);
+        scene_draw(game->scene, game->renderer);
 
-	SDL_RenderPresent(game->renderer);
+        SDL_RenderPresent(game->renderer);
 
-	SDL_Delay(1000 / 30);
+        SDL_Delay(1000 / 30);
     }
-}		 
+}                
 
 static Scene *find_scene(struct scene_node *start, SceneID scene_id)
 {
     while(start)
     {
-	if(start->scene_id == scene_id)
-	{
-	    return start->scene;
-	}
-	else
-	{
-	    start = start->next;
-	}
+        if(start->scene_id == scene_id)
+        {
+            return start->scene;
+        }
+        else
+        {
+            start = start->next;
+        }
     }
     return NULL;
 }
@@ -152,7 +152,7 @@ void game_set_scene(Game *g, SceneID scene_id)
     Scene *s = find_scene(g->scenes, scene_id);
     if(s)
     {
-	g->scene = s;
+        g->scene = s;
     }
 }
 
@@ -176,7 +176,7 @@ void game_switch_to_scene(Game *game, SceneID scene_id)
     }
     else
     {
-	fprintf(stderr, "Attempted to start nonextistent scene %d\n", scene_id);
+        fprintf(stderr, "Attempted to start nonextistent scene %d\n", scene_id);
     }
 }
 

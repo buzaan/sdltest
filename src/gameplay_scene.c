@@ -7,6 +7,7 @@
 #include "tile_map.h"
 #include "gameplay_scene.h"
 #include "graphics.h"
+#include "path.h"
 
 struct Data
 {
@@ -48,12 +49,30 @@ void gameplay_scene_start(Scene *s)
     params.rule = cell_rule;
     params.generations = 2;
     params.seed_ratio = 0.2;
-    tile_map_gen_map(data->map, &params);    
+    tile_map_gen_map(data->map, &params);
 }
 
 void gameplay_scene_update(Scene *s, int dt, const InputState *input)
 {
+    assert(input);
+    if(input->select)
+    {
+        struct Point start = {.x = 25, .y = 5};
+        struct Point end = {.x = 12, .y = 23};
+        struct Path path;
+        TileInfo path_tile = {.type = TT_STONE, .glyph = '.'};
+        Data *data = scene_get_data(s);
+        path_init(&path);
+        path_from_to(&path, data->map, &start, &end);
 
+        for(int i = 0; i < path.size; i++)
+        {
+            struct Point *pt = &path.points[i];
+            tile_map_set_tile(data->map, pt->x, pt->y, &path_tile);
+        }
+
+        path_destroy(&path);
+    }
 }
 
 void gameplay_scene_draw(Scene *s, SDL_Renderer *renderer)
