@@ -85,6 +85,7 @@ bool game_should_quit(Game *game)
     return game && game->quitting;
 }
 
+//TODO
 static Uint64 update_timer(Game *game)
 {
     Uint32 cur_tick = SDL_GetTicks();
@@ -127,7 +128,7 @@ void game_tick(Game *game)
 
         SDL_RenderPresent(game->renderer);
 
-        SDL_Delay(1000 / 30);
+        SDL_Delay(1000 / 30); //TODO
     }
 }
 
