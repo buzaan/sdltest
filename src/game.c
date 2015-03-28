@@ -129,7 +129,7 @@ void game_tick(Game *game)
 
         SDL_Delay(1000 / 30);
     }
-}                
+}
 
 static Scene *find_scene(struct scene_node *start, SceneID scene_id)
 {

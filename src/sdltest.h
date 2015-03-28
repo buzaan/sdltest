@@ -13,9 +13,9 @@ struct InputState
     bool select;
     struct pos
     {
-	bool active;
-	int x;
-	int y;
+        bool active;
+        int x;
+        int y;
     } cursor;
     bool quit;
 };

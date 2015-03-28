@@ -24,8 +24,8 @@ void menu_scene_update(Scene *scene, int dt, const InputState *input)
 {
     if(input->select)
     {
-	Game *game = scene_get_game(scene);
-	game_switch_to_scene(game, SCENE_GAMEPLAY);
+        Game *game = scene_get_game(scene);
+        game_switch_to_scene(game, SCENE_GAMEPLAY);
     }
 }
 
@@ -40,7 +40,7 @@ void menu_scene_stop(Scene *scene)
     MenuScene *data = scene_get_data(scene);
     if(data)
     {
-	SDL_DestroyTexture(data->background);
+        SDL_DestroyTexture(data->background);
     }
     free(data);
 }
