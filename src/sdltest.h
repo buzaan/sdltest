@@ -24,6 +24,7 @@ typedef struct InputState InputState;
 struct InputKeymap
 {
     // not yet supported
+    int placeholder;
 };
 typedef struct InputKeymap InputKeymap;
 

@@ -54,9 +54,9 @@ void input_update(InputState *state, InputKeymap *map)
             }
             break;
         case SDL_MOUSEBUTTONUP:
-            switch(event.button.type)
+            switch(event.button.button)
             {
-            case SDL_MOUSEBUTTONDOWN:
+            case SDL_BUTTON_LEFT:
                 state->cursor.x = event.button.x;
                 state->cursor.y = event.button.y;
                 state->cursor.active = true;

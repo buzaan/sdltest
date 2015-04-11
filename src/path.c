@@ -209,19 +209,18 @@ static bool queue_valid(struct PtQueue *q)
 static void queue_init_capacity(struct PtQueue *q, size_t size)
 {
     assert(q);
+
     q->capacity = size;
     q->data = malloc(sizeof(struct Point) * q->capacity);
     q->start = &q->data[0];
     q->end = q->start + 1;
+
+    assert(queue_valid(q));
 }
 
 static void queue_init(struct PtQueue *q)
 {
-    assert(q);
-
     queue_init_capacity(q, QUEUE_DEFAULT_CAPACITY);
-
-    assert(queue_valid(q));
 }
 
 static void queue_destroy(struct PtQueue *q)

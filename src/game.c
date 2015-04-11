@@ -5,6 +5,9 @@
 #include "scene.h"
 #include "game.h"
 
+// Target 30fps
+static const Uint32 FRAME_BUDGET = 1000 / 30;
+
 struct game_s
 {
     SDL_Window *window;
@@ -85,15 +88,6 @@ bool game_should_quit(Game *game)
     return game && game->quitting;
 }
 
-//TODO
-static Uint64 update_timer(Game *game)
-{
-    Uint32 cur_tick = SDL_GetTicks();
-    Uint32 dt = cur_tick - game->last_tick;
-    game->last_tick = cur_tick;
-    return dt;
-}
-
 void game_tick(Game *game)
 {
     InputState state = { 
@@ -122,13 +116,20 @@ void game_tick(Game *game)
 
     if(game->scene)
     {
-        Uint32 dt = update_timer(game);
+        Uint32 start = SDL_GetTicks();
+        Uint32 dt = start - game->last_tick;
+        game->last_tick = start;
+
         scene_update(game->scene, dt, &state);
         scene_draw(game->scene, game->renderer);
 
         SDL_RenderPresent(game->renderer);
 
-        SDL_Delay(1000 / 30); //TODO
+        Uint32 frametime = SDL_GetTicks() - start;
+        if(frametime < FRAME_BUDGET)
+        {
+            SDL_Delay(FRAME_BUDGET - frametime);
+        }
     }
 }
 
