@@ -134,6 +134,17 @@ void tile_map_destroy(TileMap *map)
    }
 }
 
+void tile_map_tile_at(TileMap *map, const struct Point *px, struct Point *out)
+{
+    assert(px);
+    assert(out);
+    assert(bounds(0, px->x, map->bounds.w));
+    assert(bounds(0, px->y, map->bounds.h));
+
+    out->x = px->x % TILE_WIDTH;
+    out->y = px->y / TILE_WIDTH;
+}
+
 TileInfo *tile_map_get_tile(const TileMap *map, int x, int y)
 {
     if(map && bounds(0, x, map->tiles.w) && bounds(0, y, map->tiles.h))

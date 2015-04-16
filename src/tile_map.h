@@ -40,6 +40,10 @@ TileInfo *tile_map_get_tile(const TileMap *map, int x, int y);
 void tile_map_gen_map(TileMap *map, TileMapCAParams *params);
 void tile_map_draw(TileMap *map, SDL_Renderer *r);
 void tile_map_destroy(TileMap *map);
+
+/* Returns tile (x,y) at pixel location px.
+ */
+void tile_map_tile_at(TileMap *map, const struct Point *px, struct Point *out);
 void tile_switch_type(TileInfo *tile, enum TileType new_type);
 void tile_map_dimensions(const TileMap *map, int *out_x, int *out_y);
 unsigned int tile_map_tile_id(const TileMap *map, const struct Point *pt);
@@ -47,6 +51,7 @@ void tile_map_coord(const TileMap *map, TileID tid, struct Point *out);
 unsigned int tile_map_max_id(const TileMap *map);
 
 /* Returns number of neighbors found.
+
    out_neighbors: filled with TileID of neighboring tiles
    count: capacity (int number of TileIDs) of out_neighbors
 */

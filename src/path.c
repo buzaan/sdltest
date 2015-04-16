@@ -316,12 +316,29 @@ static void queue_reset(struct PtQueue *q)
     q->end = q->start + 1;
 }
 
-void path_init(struct Path *p)
+void path_init_capacity(struct Path *p, size_t capacity)
 {
     assert(p);
-    p->points = malloc(sizeof(p->points[0]) * PATH_DEFAULT_CAPACITY);
-    p->capacity = PATH_DEFAULT_CAPACITY;
+    p->capacity = capacity;
+    p->points = malloc(sizeof(p->points[0]) * p->capacity);
     p->size = 0;
+
+}
+
+void path_init(struct Path *p)
+{
+    path_init_capacity(p, PATH_DEFAULT_CAPACITY);
+}
+
+void path_copy(const struct Path *src, struct Path *dest)
+{
+    assert(src);
+    assert(dest);
+
+    free(dest->points);
+    path_init_capacity(dest, src->capacity);
+    dest->size = src->size;
+    memcpy(dest->points, src->points, sizeof(src->points[0]) * src->size);
 }
 
 static void path_push_point(struct Path *p, const struct Point *pt)

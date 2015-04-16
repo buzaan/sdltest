@@ -10,6 +10,7 @@ struct Path
 };
 
 void path_init(struct Path *p);
+void path_copy(const struct Path *src, struct Path *dest);
 
 /* Finds a path between the two points on the map.  
  * 
