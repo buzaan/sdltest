@@ -4,13 +4,16 @@
 #include <SDL2/SDL.h>
 #include "sdltest.h"
 #include "scene.h"
+#include "sprite_sheet.h"
 #include "tile_map.h"
+#include "game.h"
 #include "gameplay_scene.h"
 #include "graphics.h"
 
 struct Data
 {
     TileMap *map;
+    struct SpriteSheet *sprites;
 };
 typedef struct Data Data;
 
@@ -39,10 +42,21 @@ static void cell_rule(TileMap *map, int x, int y, TileInfo *tile)
 void gameplay_scene_start(Scene *s)
 {
     fputs("Starting gameplay scene.\n", stderr);
+    Game *game = scene_get_game(s);
+
     Data *data = malloc(sizeof(Data));
     scene_set_data(s, data);
-    data->map = tile_map_create(scene_get_game(s));
-    
+    SDL_Texture *tiles = game_load_texture(game, "resources/dostiles.bmp");
+
+    // TODO
+    data->sprites = sprite_sheet_create(
+        tiles, 
+        WINDOW_WIDTH,
+        WINDOW_HEIGHT - 60,
+        16, 16);
+
+    data->map = tile_map_create(scene_get_game(s), data->sprites);
+
     TileMapCAParams params;
     params.rule = cell_rule;
     params.generations = 2;
@@ -67,5 +81,6 @@ void gameplay_scene_stop(Scene *s)
     fputs("Ending gameplay scene.\n", stderr);
     Data *data = scene_get_data(s);
     tile_map_destroy(data->map);
+    sprite_sheet_destroy(data->sprites);
     free(data);
 }

@@ -22,7 +22,7 @@ struct TileMap
     struct dim tiles; // in tiles 
     TileInfo *data; // tile data
     size_t data_size;
-    SDL_Texture *sprites;
+    struct SpriteSheet *sprites;    
 };
 
 // Checks if val is in the half-open interval [min, max)
@@ -31,7 +31,7 @@ static bool bounds(int min, int val, int max)
     return min <= val && val < max;
 }
 
-TileMap *tile_map_create(Game *game)
+TileMap *tile_map_create(Game *game, struct SpriteSheet *sheet)
 {
     if(!game) return NULL;
 
@@ -45,21 +45,8 @@ TileMap *tile_map_create(Game *game)
     map->data = malloc(map->data_size);
     memset(map->data, 0, map->data_size);
 
-    SDL_Surface *bmp = SDL_LoadBMP("resources/dostiles.bmp");
-    if(!bmp)
-    {
-        fprintf(stderr, "LoadBMP: %s\n", SDL_GetError());
-        tile_map_destroy(map);
-        return NULL;
-    }
+    map->sprites = sheet;
 
-    SDL_Renderer *renderer = game_get_renderer(game);
-    map->sprites = SDL_CreateTextureFromSurface(renderer, bmp);
-    if(!map->sprites)
-    {
-        fprintf(stderr, "CreateTextureFromSurface: %s\n", SDL_GetError());
-    }
-    SDL_FreeSurface(bmp);
     return map;
 }
 
@@ -123,7 +110,6 @@ void tile_map_destroy(TileMap *map)
     if(map)
     {
         free(map->data);
-        SDL_DestroyTexture(map->sprites);
         free(map);
    }
 }
@@ -146,38 +132,20 @@ void tile_map_set_tile(TileMap *map, int x, int y, TileInfo *tile)
     }
 }
 
-static void tile_rect(const TileInfo *tile, SDL_Rect *out)
-{
-    assert(tile);
-    assert(out);
-    int row = tile->glyph % FONT_SHEET_CELL_STRIDE;
-    int col = tile->glyph / FONT_SHEET_CELL_STRIDE;
-    out->x = row * TILE_WIDTH;
-    out->y = col * TILE_HEIGHT;
-}
-
 void tile_map_draw(TileMap *map, SDL_Renderer *r)
 {
     if(!map) return;
-
-    SDL_Rect dst = {.w = TILE_WIDTH, .h = TILE_HEIGHT};
-    SDL_Rect src = {.w = TILE_WIDTH, .h = TILE_HEIGHT};
     for(int x = 0; x < map->tiles.w; x++)
     {
         for(int y = 0; y < map->tiles.h; y++)
         {
             TileInfo *tile = tile_map_get_tile(map, x, y);
             assert(tile);
-            
-            dst.x = x * TILE_WIDTH;
-            dst.y = y * TILE_WIDTH;
-            tile_rect(tile, &src);
-            SDL_RenderCopy(r, map->sprites, &src, &dst);
+            sprite_sheet_draw(map->sprites, r, x, y, tile->glyph);
         }
     }
 }
 
-#define TILE_AT(x, y) ((x) + ((y) * FONT_SHEET_CELL_STRIDE))
 void tile_switch_type(TileInfo *tile, enum TileType new_type)
 {
     assert(tile);

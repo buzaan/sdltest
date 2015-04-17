@@ -19,6 +19,12 @@ struct game_s
 	Scene *scene;
 	struct scene_node *next;
     } *scenes;
+
+    struct texture_node
+    {
+        SDL_Texture *texture;
+        struct texture_node *next;
+    } *textures;
 };
 
 Game *game_create(char *title, int x_size, int y_size)
@@ -52,6 +58,7 @@ Game *game_create(char *title, int x_size, int y_size)
     game->last_tick = SDL_GetTicks();
     game->quitting = false;
     game->scenes = NULL;
+    game->textures = NULL;
     return game;
 }
 
@@ -72,6 +79,15 @@ void game_destroy(Game *game)
 	    free(tmp);
 	};
 	
+        struct texture_node *tex = game->textures;
+        while(tex)
+        {
+            struct texture_node *tmp = tex;
+            SDL_DestroyTexture(tmp->texture);
+            tex = tmp->next;
+            free(tmp);
+        }
+
 	SDL_DestroyRenderer(game->renderer);
 	SDL_DestroyWindow(game->window);
 	free(game);
@@ -173,6 +189,30 @@ void game_switch_to_scene(Game *game, SceneID scene_id)
 	fprintf(stderr, "Attempted to start nonextistent scene %d\n", scene_id);
     }
 }
+
+SDL_Texture *game_load_texture(Game *game, char *filename)
+{
+    SDL_Surface *bmp = SDL_LoadBMP(filename);
+    if(!bmp)
+    {
+        fprintf(stderr, "LoadBMP: %s\n", SDL_GetError());
+        return NULL;
+    }
+
+    SDL_Texture *tex = SDL_CreateTextureFromSurface(game->renderer, bmp);
+    if(!tex)
+    {
+        fprintf(stderr, "CreateTextureFromSurface: %s\n", SDL_GetError());
+        return NULL;
+    }
+    SDL_FreeSurface(bmp);    
+    
+    struct texture_node *node = malloc(sizeof(struct texture_node));
+    node->texture = tex;
+    node->next = game->textures;
+
+    return tex;
+}                              
 
 SDL_Renderer *game_get_renderer(Game *game)
 {
