@@ -62,6 +62,29 @@ Game *game_create(char *title, int x_size, int y_size)
     return game;
 }
 
+static void free_scenes(struct scene_node *head)
+{
+    struct scene_node *cur = head;
+    while(cur)
+    {
+        struct scene_node *tmp = cur;
+        cur = tmp->next;
+        free(tmp);
+    };
+}
+
+static void free_textures(struct texture_node *head)
+{
+    struct texture_node *cur = head;
+    while(cur)
+    {
+        struct texture_node *tmp = cur;
+        SDL_DestroyTexture(tmp->texture);
+        cur = tmp->next;
+        free(tmp);
+    }    
+}
+
 void game_destroy(Game *game)
 {
     if(game)
@@ -71,22 +94,8 @@ void game_destroy(Game *game)
 	    scene_stop(game->scene);
 	}
 
-	struct scene_node *cur = game->scenes;
-	while(cur)
-	{
-	    struct scene_node *tmp = cur;
-	    cur = tmp->next;
-	    free(tmp);
-	};
-	
-        struct texture_node *tex = game->textures;
-        while(tex)
-        {
-            struct texture_node *tmp = tex;
-            SDL_DestroyTexture(tmp->texture);
-            tex = tmp->next;
-            free(tmp);
-        }
+        free_scenes(game->scenes);
+        free_textures(game->textures);
 
 	SDL_DestroyRenderer(game->renderer);
 	SDL_DestroyWindow(game->window);

@@ -48,14 +48,8 @@ void gameplay_scene_start(Scene *s)
     scene_set_data(s, data);
     SDL_Texture *tiles = game_load_texture(game, "resources/dostiles.bmp");
 
-    // TODO
-    data->sprites = sprite_sheet_create(
-        tiles, 
-        WINDOW_WIDTH,
-        WINDOW_HEIGHT - 60,
-        16, 16);
-
-    data->map = tile_map_create(scene_get_game(s), data->sprites);
+    data->sprites = sprite_sheet_create(tiles, 256, 256, 16, 16);
+    data->map = tile_map_create(game, data->sprites);
 
     TileMapCAParams params;
     params.rule = cell_rule;
@@ -66,7 +60,8 @@ void gameplay_scene_start(Scene *s)
 
 void gameplay_scene_update(Scene *s, int dt, const InputState *input)
 {
-
+    Data *data = scene_get_data(s);
+    
 }
 
 void gameplay_scene_draw(Scene *s, SDL_Renderer *renderer)
