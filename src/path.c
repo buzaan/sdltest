@@ -499,7 +499,7 @@ void path_fprint(struct Path *path, FILE *file)
     fprintf(file, "]\n");
 }
 
-void path_destroy(struct Path *p)
+void path_cleanup(struct Path *p)
 {
     free(p->points);
 }

@@ -12,6 +12,7 @@ struct Path
 };
 
 void path_init(struct Path *p);
+void path_cleanup(struct Path *p);
 void path_copy(const struct Path *src, struct Path *dest);
 
 /* Finds a path between the two points on the map.  
@@ -23,7 +24,7 @@ void path_from_to(struct Path *out,
                   const TileMap *map, 
                   const struct Point *from, 
                   const struct Point *to);
-void path_destroy(struct Path *p);
+
 
 /* Finds nearest tile to start where pred is true. Output stored in
  * found; returns false on failure. */
