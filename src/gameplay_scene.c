@@ -4,7 +4,9 @@
 #include <SDL2/SDL.h>
 #include "sdltest.h"
 #include "scene.h"
+#include "sprite_sheet.h"
 #include "tile_map.h"
+#include "game.h"
 #include "gameplay_scene.h"
 #include "graphics.h"
 #include "path.h"
@@ -14,7 +16,7 @@ struct Data
 {
     TileMap *map;
     struct Worker *worker;
-    SDL_Texture *tiles;
+    struct SpriteSheet *sprites;
 };
 typedef struct Data Data;
 
@@ -50,14 +52,16 @@ bool empty_tile(const TileInfo *tile)
 void gameplay_scene_start(Scene *s)
 {
     fputs("Starting gameplay scene.\n", stderr);
-    Game *game = scene_get_game(s);
+
     Data *data = malloc(sizeof(Data));
     scene_set_data(s, data);
 
-    data->tiles = game_create_texture(game, "resources/dostiles.bmp");
-    data->map = tile_map_create(data->tiles);
-    
-    // Generate map
+    Game *game = scene_get_game(s);
+    SDL_Texture *tiles = game_load_texture(game, "resources/dostiles.bmp");
+
+    data->sprites = sprite_sheet_create(tiles, 256, 256, 16, 16);
+    data->map = tile_map_create(game, data->sprites);
+
     TileMapCAParams params;
     params.rule = cell_rule;
     params.generations = 2;
@@ -101,7 +105,6 @@ void gameplay_scene_update(Scene *s, int dt, const InputState *input)
         struct Point end = {.x = 12, .y = 23};
         struct Path path;
         TileInfo path_tile = {.type = TT_STONE, .glyph = '.'};
-        Data *data = scene_get_data(s);
         path_init(&path);
         path_from_to(&path, data->map, &start, &end);
 

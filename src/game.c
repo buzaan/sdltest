@@ -5,6 +5,9 @@
 #include "scene.h"
 #include "game.h"
 
+// Target 30fps
+static const Uint32 FRAME_BUDGET = 1000 / 30;
+
 struct game_s
 {
     SDL_Window *window;
@@ -19,6 +22,13 @@ struct game_s
         Scene *scene;
         struct scene_node *next;
     } *scenes;
+
+    struct texture_node
+    {
+        SDL_Texture *texture;
+        struct texture_node *next;
+    } *textures;
+
     Scene *next_scene;
 };
 
@@ -53,45 +63,55 @@ Game *game_create(char *title, int x_size, int y_size)
     game->last_tick = SDL_GetTicks();
     game->quitting = false;
     game->scenes = NULL;
+    game->textures = NULL;
     game->next_scene = NULL;
     return game;
+}
+
+static void free_scenes(struct scene_node *head)
+{
+    struct scene_node *cur = head;
+    while(cur)
+    {
+        struct scene_node *tmp = cur;
+        cur = tmp->next;
+        free(tmp);
+    };
+}
+
+static void free_textures(struct texture_node *head)
+{
+    struct texture_node *cur = head;
+    while(cur)
+    {
+        struct texture_node *tmp = cur;
+        SDL_DestroyTexture(tmp->texture);
+        cur = tmp->next;
+        free(tmp);
+    }    
 }
 
 void game_destroy(Game *game)
 {
     if(game)
     {
-        if(game->scene)
-        {
-            scene_stop(game->scene);
-        }
+	if(game->scene)
+	{
+	    scene_stop(game->scene);
+	}
 
-        struct scene_node *cur = game->scenes;
-        while(cur)
-        {
-            struct scene_node *tmp = cur;
-            cur = tmp->next;
-            free(tmp);
-        };
-        
-        SDL_DestroyRenderer(game->renderer);
-        SDL_DestroyWindow(game->window);
-        free(game);
+        free_scenes(game->scenes);
+        free_textures(game->textures);
+
+	SDL_DestroyRenderer(game->renderer);
+	SDL_DestroyWindow(game->window);
+	free(game);
     }
 }
 
 bool game_should_quit(Game *game)
 {
     return game && game->quitting;
-}
-
-//TODO
-static Uint64 update_timer(Game *game)
-{
-    Uint32 cur_tick = SDL_GetTicks();
-    Uint32 dt = cur_tick - game->last_tick;
-    game->last_tick = cur_tick;
-    return dt;
 }
 
 void game_tick(Game *game)
@@ -122,13 +142,20 @@ void game_tick(Game *game)
 
     if(game->scene)
     {
-        Uint32 dt = update_timer(game);
+        Uint32 start = SDL_GetTicks();
+        Uint32 dt = start - game->last_tick;
+        game->last_tick = start;
+
         scene_update(game->scene, dt, &state);
         scene_draw(game->scene, game->renderer);
 
         SDL_RenderPresent(game->renderer);
 
-        SDL_Delay(1000 / 30); //TODO
+        Uint32 frametime = SDL_GetTicks() - start;
+        if(frametime < FRAME_BUDGET)
+        {
+            SDL_Delay(FRAME_BUDGET - frametime);
+        }
     }
 }
 
@@ -181,13 +208,7 @@ void game_switch_to_scene(Game *game, SceneID scene_id)
     }
 }
 
-SDL_Renderer *game_get_renderer(Game *game)
-{
-    return game->renderer;
-}
-
-// TODO: move to resource manager or something maybe.
-SDL_Texture *game_create_texture(Game *game, char *filename)
+SDL_Texture *game_load_texture(Game *game, char *filename)
 {
     SDL_Surface *bmp = SDL_LoadBMP(filename);
     if(!bmp)
@@ -196,11 +217,22 @@ SDL_Texture *game_create_texture(Game *game, char *filename)
         return NULL;
     }
 
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(game->renderer, bmp);
-    if(!map->sprites)
+    SDL_Texture *tex = SDL_CreateTextureFromSurface(game->renderer, bmp);
+    if(!tex)
     {
         fprintf(stderr, "CreateTextureFromSurface: %s\n", SDL_GetError());
+        return NULL;
     }
     SDL_FreeSurface(bmp);    
-    return texture;
+    
+    struct texture_node *node = malloc(sizeof(struct texture_node));
+    node->texture = tex;
+    node->next = game->textures;
+
+    return tex;
+}                              
+
+SDL_Renderer *game_get_renderer(Game *game)
+{
+    return game->renderer;
 }

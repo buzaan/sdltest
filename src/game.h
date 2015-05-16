@@ -12,6 +12,4 @@ void game_register_scene(Game *game, Scene *scene, SceneID scene_id);
 void game_switch_to_scene(Game *game, SceneID scene_id);
 
 SDL_Renderer *game_get_renderer(Game *game);
-
-//N.B., caller must free returned texture. Returns NULL on failure.
-SDL_Texture *game_create_texture(Game *game, char *filename);
+SDL_Texture *game_load_texture(Game *game, char *filename);

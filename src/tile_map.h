@@ -3,10 +3,12 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include "sdltest.h"
+#include "sprite_sheet.h"
 
-// *sound of Marge Simpson going 'hmrrrrm' *
+// TODO: fix
 #define FONT_SHEET_CELL_STRIDE 16
 #define TILE_AT(x, y) ((x) + ((y) * FONT_SHEET_CELL_STRIDE))
+
 
 enum TileType
 {
@@ -34,8 +36,9 @@ typedef struct TileMapCAParams TileMapCAParams;
 
 typedef unsigned int TileID;
 
-TileMap *tile_map_create(Game *game);
+TileMap *tile_map_create(Game *game, struct SpriteSheet *sprites);
 void tile_map_set_tile(TileMap *map, int x, int y, TileInfo *tile);
+struct SpriteSheet *tile_map_get_sprites(TileMap *map);
 TileInfo *tile_map_get_tile(const TileMap *map, int x, int y);
 TileInfo *tile_map_get_tilei(const TileMap *map, TileID id); // bleh
 void tile_map_gen_map(TileMap *map, TileMapCAParams *params);

@@ -61,7 +61,11 @@ void worker_update(struct Worker *worker, Uint32 dt)
 
 void worker_draw(struct Worker *worker, SDL_Renderer *renderer)
 {
-    
+    struct SpriteSheet *sheet = tile_map_get_sprites(worker->map);
+    sprite_sheet_draw(sheet, renderer, 
+                      worker->location.x, 
+                      worker->location.y,
+                      worker->glyph);
 }
 
 void worker_set_path(struct Worker *worker, struct Path *path)
