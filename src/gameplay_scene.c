@@ -4,7 +4,9 @@
 #include <SDL2/SDL.h>
 #include "sdltest.h"
 #include "scene.h"
+#include "sprite_sheet.h"
 #include "tile_map.h"
+#include "game.h"
 #include "gameplay_scene.h"
 #include "graphics.h"
 #include "path.h"
@@ -12,6 +14,7 @@
 struct Data
 {
     TileMap *map;
+    struct SpriteSheet *sprites;
 };
 typedef struct Data Data;
 
@@ -44,8 +47,13 @@ void gameplay_scene_start(Scene *s)
 
     Data *data = malloc(sizeof(Data));
     scene_set_data(s, data);
-    data->map = tile_map_create(scene_get_game(s));
-    
+
+    Game *game = scene_get_game(s);
+    SDL_Texture *tiles = game_load_texture(game, "resources/dostiles.bmp");
+
+    data->sprites = sprite_sheet_create(tiles, 256, 256, 16, 16);
+    data->map = tile_map_create(game, data->sprites);
+
     TileMapCAParams params;
     params.rule = cell_rule;
     params.generations = 2;
