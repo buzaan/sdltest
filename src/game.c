@@ -39,7 +39,7 @@ Game *game_create(char *title, int x_size, int y_size)
         return NULL;
     }
     
-    Game *game = malloc(sizeof(Game));
+    Game *game = malloc(sizeof(*game));
     game->window = SDL_CreateWindow(
         title, 
         100, 100, 
@@ -186,7 +186,7 @@ void game_set_scene(Game *g, SceneID scene_id)
 
 void game_register_scene(Game *game, Scene *scene, SceneID scene_id)
 {
-    struct scene_node *node = malloc(sizeof(struct scene_node));
+    struct scene_node *node = malloc(sizeof(*node));
     node->next = game->scenes;
     node->scene_id = scene_id;
     node->scene = scene;
@@ -225,7 +225,7 @@ SDL_Texture *game_load_texture(Game *game, char *filename)
     }
     SDL_FreeSurface(bmp);    
     
-    struct texture_node *node = malloc(sizeof(struct texture_node));
+    struct texture_node *node = malloc(sizeof(*node));
     node->texture = tex;
     node->next = game->textures;
 

@@ -20,7 +20,7 @@ static void default_stop(Scene *s) {}
 
 Scene *scene_create(Game *owner)
 {
-    Scene *out = malloc(sizeof(Scene));
+    Scene *out = malloc(sizeof(*out));
     out->start = default_start;
     out->update = default_update;
     out->draw = default_draw;

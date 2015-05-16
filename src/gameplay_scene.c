@@ -56,7 +56,7 @@ void gameplay_scene_start(Scene *s)
 {
     fputs("Starting gameplay scene.\n", stderr);
 
-    Data *data = malloc(sizeof(Data));
+    Data *data = malloc(sizeof(*data));
     scene_set_data(s, data);
 
     Game *game = scene_get_game(s);

@@ -35,11 +35,11 @@ static bool bounds(int min, int val, int max)
 
 TileMap *tile_map_create(unsigned int x_tiles, unsigned int y_tiles)
 {
-    TileMap *map = malloc(sizeof(TileMap));
+    TileMap *map = malloc(sizeof(*map));
     map->tiles.w = x_tiles;
     map->tiles.h = y_tiles;
 
-    map->data_size = map->tiles.w * map->tiles.h * sizeof(TileInfo);
+    map->data_size = map->tiles.w * map->tiles.h * sizeof(*map->data);
     map->data = malloc(map->data_size);
     memset(map->data, 0, map->data_size);
 

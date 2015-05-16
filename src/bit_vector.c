@@ -15,7 +15,7 @@ void bv_init(struct BitVec *v, size_t bit_capacity)
         words++;
     }
     
-    v->data = calloc(words, sizeof(unsigned int));
+    v->data = calloc(words, sizeof(*v->data));
     v->words = words;
 }
 

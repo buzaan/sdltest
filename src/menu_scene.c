@@ -12,7 +12,7 @@ typedef struct MenuScene MenuScene;
 
 void menu_scene_start(Scene *scene)
 {
-    MenuScene *data = malloc(sizeof(MenuScene));
+    MenuScene *data = malloc(sizeof(*data));
     Game *game = scene_get_game(scene);
     SDL_Renderer *renderer = game_get_renderer(game);
 

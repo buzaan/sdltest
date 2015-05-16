@@ -83,7 +83,7 @@ static bool pqueue_valid(struct PriorityQueue *q)
 static void pqueue_init_capacity(struct PriorityQueue *q, size_t capacity)
 {
     assert(q);
-    q->items = malloc(capacity * sizeof(struct HeapItem));
+    q->items = malloc(capacity * sizeof(*q->items));
     q->size = 0;
     q->capacity = capacity;
 }
@@ -99,7 +99,7 @@ static void pqueue_realloc(struct PriorityQueue *q)
     assert(q);
 
     q->capacity *= 2;
-    q->items = realloc(q->items, q->capacity * sizeof(struct HeapItem));
+    q->items = realloc(q->items, q->capacity * sizeof(*q->items));
 
     assert(pqueue_valid(q));
 }
@@ -211,7 +211,7 @@ static void queue_init_capacity(struct Queue *q, size_t size)
     assert(q);
 
     q->capacity = size;
-    q->data = malloc(sizeof(TileID) * q->capacity);
+    q->data = malloc(sizeof(*q->data) * q->capacity);
     q->start = &q->data[0];
     q->end = q->start + 1;
 
@@ -262,7 +262,7 @@ static void queue_realloc(struct Queue *q)
 {
     size_t old_size = queue_size(q);
     q->capacity *= 2;
-    TileID *new = malloc(sizeof(TileID) * q->capacity);
+    TileID *new = malloc(sizeof(*new) * q->capacity);
     for(TileID *i = &new[0];
         q->start != q_prev(q, q->end);
         q->start = q_next(q, q->start), i++)
@@ -342,7 +342,7 @@ static void path_push_point(struct Path *p, const struct Point *pt)
     if(p->size == p->capacity)
     {
         p->capacity *= 2;
-        p->points = realloc(p->points, sizeof(struct Point) * p->capacity);
+        p->points = realloc(p->points, sizeof(*p->points) * p->capacity);
     }
     p->points[p->size] = *pt;
     p->size++;
@@ -376,8 +376,8 @@ static void path_from_to_astar(struct Path *out, const TileMap *map,
     struct PriorityQueue queue;
     struct BitVec seen;
     unsigned int max_id = tile_map_max_id(map);
-    int *parent = calloc(max_id, sizeof(int));
-    int *cost = calloc(max_id, sizeof(int));
+    int *parent = calloc(max_id, sizeof(*parent));
+    int *cost = calloc(max_id, sizeof(*cost));
     TileID tid = tile_map_tile_id(map, from);
 
     pqueue_init(&queue);

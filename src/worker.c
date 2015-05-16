@@ -24,7 +24,7 @@ struct Worker
 
 struct Worker *worker_create(TileMap *environs, struct Point *position)
 {
-    struct Worker *out = malloc(sizeof(struct Worker));
+    struct Worker *out = malloc(sizeof(*out));
     out->map = environs;
     if(position)
     {
@@ -43,7 +43,7 @@ struct Worker *worker_create(TileMap *environs, struct Point *position)
 
 void worker_destroy(struct Worker *worker)
 {
-    path_destroy(worker->path);
+    path_cleanup(&worker->path);
     free(worker);
 }
 

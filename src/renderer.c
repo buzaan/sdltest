@@ -20,7 +20,7 @@ renderer_create(SDL_Texture *texture,
                 unsigned int tile_width,
                 unsigned int tile_height)
 {
-    struct Renderer *out = malloc(sizeof(struct Renderer));
+    struct Renderer *out = malloc(sizeof(*out));
     out->sprites = texture;
     out->renderer = renderer;
     out->sheet_width = sheet_width;
