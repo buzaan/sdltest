@@ -19,7 +19,7 @@ struct Worker
     size_t progress;
     Uint32 time;
 
-    unsigned int glyph;
+    uint8_t glyph;
 };
 
 struct Worker *worker_create(TileMap *environs, struct Point *position)
@@ -43,19 +43,25 @@ struct Worker *worker_create(TileMap *environs, struct Point *position)
 
 void worker_destroy(struct Worker *worker)
 {
+    path_destroy(worker->path);
     free(worker);
 }
 
 void worker_update(struct Worker *worker, Uint32 dt)
 {
     worker->time += dt;
-    if(worker->time > 500) // Worker moves 2x a second.
+    if(worker->time >= 250) // Worker moves 4x a second.
     {
-        worker->time = 0;
-        if(worker->progress < worker->path.size)
+        unsigned int steps = worker->time / 250;
+        worker->time = worker->time % 250;
+        while(steps > 0)
         {
-            worker->progress++;
-            worker->location = worker->path.points[worker->progress];
+            if(worker->progress < worker->path.size)
+            {
+                worker->location = worker->path.points[worker->progress];
+                worker->progress++;
+            }
+            steps--;
         }
     }
 }
@@ -71,6 +77,7 @@ void worker_draw(struct Worker *worker, struct Renderer *renderer)
 void worker_set_path(struct Worker *worker, struct Path *path)
 {
     path_copy(path, &worker->path);
+    worker->progress = 0;
 }
 
 struct Point *worker_get_location(struct Worker *worker)

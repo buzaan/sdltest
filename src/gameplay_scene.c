@@ -91,39 +91,18 @@ void gameplay_scene_update(Scene *s, int dt, const InputState *input)
     if(input->cursor.active)
     {
         struct Point dest = {
-            .x = input->cursor.x % TILE_WIDTH, 
+            .x = input->cursor.x / TILE_WIDTH, 
             .y = input->cursor.y / TILE_HEIGHT};
-
         struct Path path;
         path_init(&path);
         path_from_to(&path, data->map, worker_get_location(data->worker), &dest);
         if(path.size > 0)
         {
             path_fprint(&path, stderr);
-            //worker_set_path(data->worker, &path);
+            worker_set_path(data->worker, &path);
         }
     }
     worker_update(data->worker, dt);
-
-#if 0
-    if(input->select)
-    {
-        struct Point start = {.x = 25, .y = 5};
-        struct Point end = {.x = 12, .y = 23};
-        struct Path path;
-        TileInfo path_tile = {.type = TT_STONE, .glyph = '.'};
-        path_init(&path);
-        path_from_to(&path, data->map, &start, &end);
-
-        for(int i = 0; i < path.size; i++)
-        {
-            struct Point *pt = &path.points[i];
-            tile_map_set_tile(data->map, pt->x, pt->y, &path_tile);
-        }
-
-        path_destroy(&path);
-    }
-#endif
 }
 
 void gameplay_scene_draw(Scene *s, SDL_Renderer *renderer)
