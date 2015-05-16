@@ -5,10 +5,8 @@
 #include "sdltest.h"
 #include "game.h"
 #include "tile_map.h"
+#include "renderer.h"
 
-static const int INFO_BAR_HEIGHT = 64; // UI info bar height in px
-static const int TILE_WIDTH = 16;
-static const int TILE_HEIGHT = 16;
 static const struct Point DIRECTIONS[4] = {
     {.x = 0, .y = 1}, 
     {.x = 0, .y = -1},
@@ -24,11 +22,9 @@ struct dim
 
 struct TileMap
 {
-    struct dim bounds; // in pixels
     struct dim tiles; // in tiles 
     TileInfo *data; // tile data
     size_t data_size;
-    struct SpriteSheet *sprites;    
 };
 
 // Checks if val is in the half-open interval [min, max)
@@ -37,21 +33,15 @@ static bool bounds(int min, int val, int max)
     return min <= val && val < max;
 }
 
-TileMap *tile_map_create(Game *game, struct SpriteSheet *sheet)
+TileMap *tile_map_create(unsigned int x_tiles, unsigned int y_tiles)
 {
-    if(!game) return NULL;
-
     TileMap *map = malloc(sizeof(TileMap));
-    map->bounds.w = WINDOW_WIDTH;
-    map->bounds.h = WINDOW_HEIGHT - INFO_BAR_HEIGHT;
-    map->tiles.w = map->bounds.w / TILE_WIDTH;
-    map->tiles.h = map->bounds.h / TILE_HEIGHT;
+    map->tiles.w = x_tiles;
+    map->tiles.h = y_tiles;
 
     map->data_size = map->tiles.w * map->tiles.h * sizeof(TileInfo);
     map->data = malloc(map->data_size);
     memset(map->data, 0, map->data_size);
-
-    map->sprites = sheet;
 
     return map;
 }
@@ -137,7 +127,7 @@ void tile_map_set_tile(TileMap *map, int x, int y, TileInfo *tile)
     }
 }
 
-void tile_map_draw(TileMap *map, SDL_Renderer *r)
+void tile_map_draw(TileMap *map, struct Renderer *r)
 {
     if(!map) return;
     for(int x = 0; x < map->tiles.w; x++)
@@ -146,7 +136,7 @@ void tile_map_draw(TileMap *map, SDL_Renderer *r)
         {
             TileInfo *tile = tile_map_get_tile(map, x, y);
             assert(tile);
-            sprite_sheet_draw(map->sprites, r, x, y, tile->glyph);
+            renderer_draw(r, x, y, tile->glyph);
         }
     }
 }
