@@ -3,7 +3,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include "sdltest.h"
-#include "sprite_sheet.h"
 
 // TODO: fix
 #define FONT_SHEET_CELL_STRIDE 16
@@ -36,13 +35,15 @@ typedef struct TileMapCAParams TileMapCAParams;
 
 typedef unsigned int TileID;
 
-TileMap *tile_map_create(Game *game, struct SpriteSheet *sprites);
+struct Renderer;
+
+TileMap *tile_map_create();
 void tile_map_set_tile(TileMap *map, int x, int y, TileInfo *tile);
 struct SpriteSheet *tile_map_get_sprites(TileMap *map);
 TileInfo *tile_map_get_tile(const TileMap *map, int x, int y);
 TileInfo *tile_map_get_tilei(const TileMap *map, TileID id); // bleh
 void tile_map_gen_map(TileMap *map, TileMapCAParams *params);
-void tile_map_draw(TileMap *map, SDL_Renderer *r);
+void tile_map_draw(TileMap *map, struct Renderer *r);
 void tile_map_destroy(TileMap *map);
 
 /* Returns tile (x,y) at pixel location px.

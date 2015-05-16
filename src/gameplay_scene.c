@@ -4,19 +4,21 @@
 #include <SDL2/SDL.h>
 #include "sdltest.h"
 #include "scene.h"
-#include "sprite_sheet.h"
 #include "tile_map.h"
 #include "game.h"
 #include "gameplay_scene.h"
-#include "graphics.h"
+#include "renderer.h"
 #include "path.h"
 #include "worker.h"
+
+static const int INFO_BAR_HEIGHT = 64; // UI info bar height in px
+static const int TILE_WIDTH = 16;
+static const int TILE_HEIGHT = 16;
 
 struct Data
 {
     TileMap *map;
-    struct Worker *worker;
-    struct SpriteSheet *sprites;
+    struct Renderer *tile_renderer;
 };
 typedef struct Data Data;
 
@@ -58,9 +60,12 @@ void gameplay_scene_start(Scene *s)
 
     Game *game = scene_get_game(s);
     SDL_Texture *tiles = game_load_texture(game, "resources/dostiles.bmp");
+    SDL_Renderer *renderer = game_get_renderer(game);
 
-    data->sprites = sprite_sheet_create(tiles, 256, 256, 16, 16);
-    data->map = tile_map_create(game, data->sprites);
+    data->tile_renderer = renderer_create(tiles, renderer, 256, 256, 16, 16);
+    data->map = tile_map_create(
+        WINDOW_WIDTH / TILE_WIDTH,
+        (WINDOW_HEIGHT - INFO_BAR_HEIGHT) / TILE_HEIGHT);
 
     TileMapCAParams params;
     params.rule = cell_rule;
