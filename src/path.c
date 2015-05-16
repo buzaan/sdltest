@@ -487,7 +487,20 @@ void path_from_to(struct Path *out, const TileMap *map,
     path_from_to_astar(out, map, from, to);
 }
 
+void path_fprint(struct Path *path, FILE *file)
+{
+    assert(path);
+    struct Point *end = &path->points[path->size];
+    fprintf(file, "Path[");
+    for(struct Point *i = &path->points[0]; i != end; i++)
+    {
+        fprintf(file, "(%d,%d) ", i->x, i->y);
+    }
+    fprintf(file, "]\n");
+}
+
 void path_destroy(struct Path *p)
 {
     free(p->points);
 }
+

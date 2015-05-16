@@ -1,5 +1,6 @@
 #pragma once
 #include <stdbool.h>
+#include <stdio.h>
 #include "tile_map.h"
 
 // Temporary A* pathfinding data & functions
@@ -30,3 +31,4 @@ bool path_nearest_tile(const struct TileMap *map,
                        const struct Point *start,
                        struct Point *found,
                        bool (*pred)(const TileInfo *tile));
+void path_fprint(struct Path *path, FILE *file);

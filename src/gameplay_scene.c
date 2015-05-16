@@ -19,6 +19,7 @@ struct Data
 {
     TileMap *map;
     struct Renderer *tile_renderer;
+    struct Worker *worker;
 };
 typedef struct Data Data;
 
@@ -89,16 +90,17 @@ void gameplay_scene_update(Scene *s, int dt, const InputState *input)
     Data *data = scene_get_data(s);
     if(input->cursor.active)
     {
-        struct Point dest;
-        struct Point pos = {.x = input->cursor.x, .y = input->cursor.y};
-        tile_map_tile_at(data->map, &pos, &dest);
-        
+        struct Point dest = {
+            .x = input->cursor.x % TILE_WIDTH, 
+            .y = input->cursor.y / TILE_HEIGHT};
+
         struct Path path;
         path_init(&path);
         path_from_to(&path, data->map, worker_get_location(data->worker), &dest);
         if(path.size > 0)
         {
-            worker_set_path(data->worker, &path);
+            path_fprint(&path, stderr);
+            //worker_set_path(data->worker, &path);
         }
     }
     worker_update(data->worker, dt);
@@ -128,8 +130,8 @@ void gameplay_scene_draw(Scene *s, SDL_Renderer *renderer)
 {
     Data *data = scene_get_data(s);
     SDL_RenderClear(renderer);
-    tile_map_draw(data->map, renderer);
-    worker_draw(data->worker, renderer);
+    tile_map_draw(data->map, data->tile_renderer);
+    worker_draw(data->worker, data->tile_renderer);
 }
 
 void gameplay_scene_stop(Scene *s)
@@ -138,5 +140,6 @@ void gameplay_scene_stop(Scene *s)
     Data *data = scene_get_data(s);
     tile_map_destroy(data->map);
     worker_destroy(data->worker);
+    renderer_destroy(data->tile_renderer);
     free(data);
 }
