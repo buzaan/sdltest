@@ -37,6 +37,7 @@ typedef unsigned int TileID;
 TileMap *tile_map_create(Game *game);
 void tile_map_set_tile(TileMap *map, int x, int y, TileInfo *tile);
 TileInfo *tile_map_get_tile(const TileMap *map, int x, int y);
+TileInfo *tile_map_get_tilei(const TileMap *map, TileID id); // bleh
 void tile_map_gen_map(TileMap *map, TileMapCAParams *params);
 void tile_map_draw(TileMap *map, SDL_Renderer *r);
 void tile_map_destroy(TileMap *map);
@@ -56,3 +57,4 @@ unsigned int tile_map_max_id(const TileMap *map);
    count: capacity (int number of TileIDs) of out_neighbors
 */
 unsigned int tile_map_neighbors(const TileMap *map, TileID tid, TileID *out_neighbors, size_t count);
+

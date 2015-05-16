@@ -189,33 +189,33 @@ static TileID pqueue_extract(struct PriorityQueue *q)
 
 /* Queue of points backed by a circular buffer. Reallocated with
  * expanded capacity when maximum queue size is reached. */
-struct PtQueue
+struct Queue
 {
-    struct Point *data;
+    TileID *data;
     size_t capacity;
-    struct Point *start;
-    struct Point *end;
+    TileID *start;
+    TileID *end;
 };
 
 // Verifies invariants of queue
-static bool queue_valid(struct PtQueue *q)
+static bool queue_valid(struct Queue *q)
 {
-    struct Point *data_start = &q->data[0];
-    struct Point *data_end = &q->data[q->capacity];
+    TileID *data_start = &q->data[0];
+    TileID *data_end = &q->data[q->capacity];
     return (data_start <= q->start && q->start < data_end)
         && (data_start <= q->end && q->end < data_end);
 }
 
-static void queue_init_capacity(struct PtQueue *q, size_t size)
+static void queue_init_capacity(struct Queue *q, size_t size)
 {
     assert(q);
     q->capacity = size;
-    q->data = malloc(sizeof(struct Point) * q->capacity);
+    q->data = malloc(sizeof(TileID) * q->capacity);
     q->start = &q->data[0];
     q->end = q->start + 1;
 }
 
-static void queue_init(struct PtQueue *q)
+static void queue_init(struct Queue *q)
 {
     assert(q);
 
@@ -224,12 +224,12 @@ static void queue_init(struct PtQueue *q)
     assert(queue_valid(q));
 }
 
-static void queue_destroy(struct PtQueue *q)
+static void queue_destroy(struct Queue *q)
 {
     free(q->data);
 }
 
-static size_t queue_size(struct PtQueue *q)
+static size_t queue_size(struct Queue *q)
 {
     if(q->end <= q->start)
     {
@@ -242,29 +242,29 @@ static size_t queue_size(struct PtQueue *q)
 }
 
 // Returns the next location in the cyclic queue buffer
-static struct Point *q_next(struct PtQueue *q, struct Point *i)
+static TileID *q_next(struct Queue *q, TileID *i)
 {
     return i == &q->data[q->capacity - 1] ? &q->data[0] : i + 1;
 }
 
 // " previous "
-static struct Point *q_prev(struct PtQueue *q, struct Point *i)
+static TileID *q_prev(struct Queue *q, TileID *i)
 {
     return i == &q->data[0] ? &q->data[q->capacity - 1] : i - 1;
 }
 
-static bool queue_empty(struct PtQueue *q)
+static bool queue_empty(struct Queue *q)
 {
     return q_next(q, q->start) == q->end;
 }
 
 // Resizes the queue, copying old elements to the new space.
-static void queue_realloc(struct PtQueue *q)
+static void queue_realloc(struct Queue *q)
 {
     size_t old_size = queue_size(q);
     q->capacity *= 2;
-    struct Point *new = malloc(sizeof(struct Point) * q->capacity);
-    for(struct Point *i = &new[0];
+    TileID *new = malloc(sizeof(TileID) * q->capacity);
+    for(TileID *i = &new[0];
         q->start != q_prev(q, q->end);
         q->start = q_next(q, q->start), i++)
     {
@@ -277,7 +277,7 @@ static void queue_realloc(struct PtQueue *q)
     q->end = q->start + old_size + 1;
 }
 
-static void enqueue(struct PtQueue *q, const struct Point *p)
+static void enqueue(struct Queue *q, TileID tile)
 {
     assert(queue_valid(q));
 
@@ -285,31 +285,28 @@ static void enqueue(struct PtQueue *q, const struct Point *p)
     {
         queue_realloc(q);
     }
-    *q_prev(q, q->end) = *p;
+    *q_prev(q, q->end) = tile;
     q->end = q_next(q, q->end);
 
     assert(queue_valid(q));
 }
 
-static void dequeue(struct PtQueue *q, struct Point *out)
+static TileID dequeue(struct Queue *q)
 {
     assert(queue_valid(q));
     assert(queue_size(q) > 0);
-
-    if(out)
-    {
-        *out = *q->start;
-    }
-
+    
+    TileID out = *q->start;
     if(!queue_empty(q))
     {
         q->start = q_next(q, q->start);
     }
+    return out;
 
     assert(queue_valid(q));
 }
 
-static void queue_reset(struct PtQueue *q)
+static void queue_reset(struct Queue *q)
 {
     assert(q);
     q->start = &q->data[0];
@@ -435,11 +432,52 @@ static void path_from_to_astar(struct Path *out, const TileMap *map,
     free(cost);
 }
 
-void path_from_to_bfs(struct Path *out, const TileMap *map,
-                      const struct Point *from,
-                      const struct Point *to)
+bool path_nearest_tile(const struct TileMap *map,
+                       const struct Point *start,
+                       struct Point *found,
+                       bool (*pred)(const TileInfo *tile))
 {
+    assert(map);
+    assert(start);
+    assert(pred);
+    assert(found);
+    bool found_tile = false;
+    struct Queue queue;
+    struct BitVec seen;
 
+    bv_init(&seen, tile_map_max_id(map));
+    queue_init(&queue);
+    
+    TileID start_id = tile_map_tile_id(map, start);
+    enqueue(&queue, start_id); 
+    bv_set(&seen, start_id, true);
+
+    while(!queue_empty(&queue))
+    {
+        TileID tid = dequeue(&queue);
+        TileInfo *info = tile_map_get_tilei(map, tid);
+        if(pred(info))
+        {
+            tile_map_coord(map, tid, found);
+            found_tile = true;
+            break;
+        }
+
+        TileID neighbors[4];
+        unsigned int count = tile_map_neighbors(map, tid, neighbors, 4);
+        for(int i = 0; i < count; i++)
+        {
+            if(!bv_get(&seen, neighbors[i]))
+            {
+                bv_set(&seen, neighbors[i], true);
+                enqueue(&queue, neighbors[i]);
+            }
+        }
+    }
+
+    queue_destroy(&queue);
+    bv_destroy(&seen);
+    return found_tile;
 }
 
 void path_from_to(struct Path *out, const TileMap *map,

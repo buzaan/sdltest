@@ -14,6 +14,7 @@ struct Data
 {
     TileMap *map;
     struct Worker *worker;
+    SDL_Texture *tiles;
 };
 typedef struct Data Data;
 
@@ -40,20 +41,38 @@ static void cell_rule(TileMap *map, int x, int y, TileInfo *tile)
     tile_switch_type(tile, neighbors >= 3 ? TT_STONE : TT_EMPTY);
 }
 
+bool empty_tile(const TileInfo *tile)
+{
+    assert(tile);
+    return tile->type == TT_EMPTY;
+}
+
 void gameplay_scene_start(Scene *s)
 {
     fputs("Starting gameplay scene.\n", stderr);
+    Game *game = scene_get_game(s);
     Data *data = malloc(sizeof(Data));
     scene_set_data(s, data);
-    data->map = tile_map_create(scene_get_game(s));
-    struct Point worker_loc = {.x = 25, .y = 25};
-    data->worker = worker_create(data->map, &worker_loc);
+
+    data->tiles = game_create_texture(game, "resources/dostiles.bmp");
+    data->map = tile_map_create(data->tiles);
     
+    // Generate map
     TileMapCAParams params;
     params.rule = cell_rule;
     params.generations = 2;
     params.seed_ratio = 0.2;
     tile_map_gen_map(data->map, &params);
+
+    // Place the test worker
+    struct Point start = {.x = 25, .y = 25};
+    struct Point worker_loc = {.x = 25, .y = 25};
+    if(!path_nearest_tile(data->map, &start, &worker_loc, empty_tile))
+    {
+        fputs("Not able to find empty tile for some reason. "
+              "Placing worker in stone...", stderr);
+    }
+    data->worker = worker_create(data->map, &worker_loc);
 }
 
 void gameplay_scene_update(Scene *s, int dt, const InputState *input)

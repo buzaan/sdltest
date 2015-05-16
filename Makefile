@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS+=-Wall -g -Werror -Wno-unused-function -std=c99
+CFLAGS+=-Wall -g -Werror -Wno-unused-function -std=c99 -DDEBUG
 LDLIBS=-framework SDL2
 
 BUILD_DIR=build

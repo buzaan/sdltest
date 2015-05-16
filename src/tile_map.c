@@ -37,7 +37,7 @@ static bool bounds(int min, int val, int max)
     return min <= val && val < max;
 }
 
-TileMap *tile_map_create(Game *game)
+TileMap *tile_map_create(SDL_Texture *tiles)
 {
     if(!game) return NULL;
 
@@ -51,21 +51,7 @@ TileMap *tile_map_create(Game *game)
     map->data = malloc(map->data_size);
     memset(map->data, 0, map->data_size);
 
-    SDL_Surface *bmp = SDL_LoadBMP("resources/dostiles.bmp");
-    if(!bmp)
-    {
-        fprintf(stderr, "LoadBMP: %s\n", SDL_GetError());
-        tile_map_destroy(map);
-        return NULL;
-    }
-
-    SDL_Renderer *renderer = game_get_renderer(game);
-    map->sprites = SDL_CreateTextureFromSurface(renderer, bmp);
-    if(!map->sprites)
-    {
-        fprintf(stderr, "CreateTextureFromSurface: %s\n", SDL_GetError());
-    }
-    SDL_FreeSurface(bmp);
+    map->sprites = tiles;
     return map;
 }
 
@@ -152,6 +138,14 @@ TileInfo *tile_map_get_tile(const TileMap *map, int x, int y)
         return &map->data[y * map->tiles.w + x];
     }
     return NULL;
+}
+
+TileInfo *tile_map_get_tilei(const TileMap *map, TileID id)
+{
+    assert(0 < id && id < tile_map_max_id(map));
+    int x = id % map->tiles.w;
+    int y = id / map->tiles.w;
+    return tile_map_get_tile(map, x, y);
 }
 
 void tile_map_set_tile(TileMap *map, int x, int y, TileInfo *tile)
@@ -278,4 +272,3 @@ unsigned int tile_map_neighbors(const TileMap *map, TileID tid,
     }
     return num_neighbors;
 }
-

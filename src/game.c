@@ -185,3 +185,22 @@ SDL_Renderer *game_get_renderer(Game *game)
 {
     return game->renderer;
 }
+
+// TODO: move to resource manager or something maybe.
+SDL_Texture *game_create_texture(Game *game, char *filename)
+{
+    SDL_Surface *bmp = SDL_LoadBMP(filename);
+    if(!bmp)
+    {
+        fprintf(stderr, "LoadBMP: %s\n", SDL_GetError());
+        return NULL;
+    }
+
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(game->renderer, bmp);
+    if(!map->sprites)
+    {
+        fprintf(stderr, "CreateTextureFromSurface: %s\n", SDL_GetError());
+    }
+    SDL_FreeSurface(bmp);    
+    return texture;
+}
